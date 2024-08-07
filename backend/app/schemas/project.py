@@ -1,7 +1,8 @@
 from pydantic import BaseModel, Field
 from typing import List
 from datetime import datetime
-from .common import PyObjectId, get_current_utc_time
+
+from app.schemas.common import PyObjectId, get_current_utc_time
 
 class ProjectBase(BaseModel):
     name: str
@@ -14,7 +15,8 @@ class ProjectCreate(ProjectBase):
     tags: List[str]
 
 class ProjectInDB(ProjectBase):
-    id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    mongo_id: PyObjectId = Field(default_factory=PyObjectId, alias="_id")
+    id: str = Field(..., index=True)
     created_at: datetime = Field(default_factory=get_current_utc_time)
     updated_at: datetime = Field(default_factory=get_current_utc_time)
 

@@ -50,13 +50,20 @@ resource "aws_iam_role_policy" "lambda_sqs_policy" {
   })
 }
 
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_dir  = "${path.module}/lambda"
+  output_path = "${path.module}/lambda_function.zip"
+}
+
 # Create the Lambda function
 resource "aws_lambda_function" "event_webhook_lambda" {
-  filename      = "lambda_function.zip"  # You need to create this ZIP file with the Python code
+  filename      = data.archive_file.lambda_zip.output_path
   function_name = "event-webhook-to-sqs"
   role          = aws_iam_role.lambda_role.arn
   handler       = "lambda_function.lambda_handler"
   runtime       = "python3.9"
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
 
   environment {
     variables = {

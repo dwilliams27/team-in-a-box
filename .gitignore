@@ -60,3 +60,5 @@ terraform.rc
 # Ignore OS generated files
 .DS_Store
 Thumbs.db
+
+lambda_function.zip

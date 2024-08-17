@@ -61,4 +61,4 @@ terraform.rc
 .DS_Store
 Thumbs.db
 
-lambda_function.zip
+*lambda_function.zip

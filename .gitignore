@@ -62,3 +62,4 @@ terraform.rc
 Thumbs.db
 
 *lambda_function.zip
+.env

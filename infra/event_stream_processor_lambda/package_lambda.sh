@@ -1,20 +1,19 @@
 #!/bin/bash
 
-# Create a temporary directory for packaging
-TEMP_DIR=$(mktemp -d)
-
-# Ensure cleanup on script exit
-trap "rm -rf $TEMP_DIR" EXIT
+rm -rf ./lambda_function.zip
+rm -rf ./temp
+mkdir temp/
 
 # Install dependencies
-pip install -r requirements.txt --target $TEMP_DIR
+pip install -r requirements.txt --target ./temp
 
 # Copy your Lambda function code
-cp lambda_function.py $TEMP_DIR/
+cp lambda_function.py ./temp/
 
-# Create the zip file
-ZIP_DIR=$(pwd)
-cd $TEMP_DIR
-zip -r9 $ZIP_DIR/lambda_function.zip .
+
+cd ./temp
+zip -r9 ../lambda_function.zip .
+cd ../
+rm -rf ./temp
 
 echo "Lambda function packaged as lambda_function.zip"

@@ -1,3 +1,8 @@
+variable "MONGO_DB_URI" {
+  description = "MongoDB connection URI"
+  type        = string
+}
+
 # Configure the AWS provider
 provider "aws" {
   region = "us-east-1"
@@ -21,6 +26,31 @@ resource "aws_iam_role" "lambda_role" {
         Principal = {
           Service = "lambda.amazonaws.com"
         }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "lambda_vpc_policy" {
+  name = "lambda_vpc_policy"
+  role = aws_iam_role.lambda_role.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface",
+          "ec2:AssignPrivateIpAddresses",
+          "ec2:UnassignPrivateIpAddresses",
+          "ec2:DescribeSecurityGroups",
+          "ec2:DescribeSubnets",
+          "ec2:DescribeVpcs"
+        ]
+        Effect   = "Allow"
+        Resource = "*"
       }
     ]
   })
@@ -51,49 +81,6 @@ resource "aws_iam_role_policy" "lambda_sqs_policy" {
       }
     ]
   })
-}
-
-# --- event -> lambda -> SQS ---
-data "archive_file" "event_stream_lambda_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/event_stream_lambda"
-  output_path = "${path.module}/event_stream_lambda/lambda_function.zip"
-}
-
-resource "aws_lambda_function" "event_stream_lambda" {
-  filename      = data.archive_file.event_stream_lambda_zip.output_path
-  function_name = "event-stream-lambda"
-  role          = aws_iam_role.lambda_role.arn
-  handler       = "lambda_function.lambda_handler"
-  runtime       = "python3.9"
-  source_code_hash = data.archive_file.event_stream_lambda_zip.output_base64sha256
-
-  environment {
-    variables = {
-      SQS_QUEUE_URL = aws_sqs_queue.event_stream_queue.url
-    }
-  }
-}
-
-# --- SQS -> lambda -> mongo ---
-data "archive_file" "event_stream_processor_lambda_zip" {
-  type        = "zip"
-  source_dir  = "${path.module}/event_stream_processor_lambda"
-  output_path = "${path.module}/event_stream_processor_lambda/lambda_function.zip"
-}
-resource "aws_lambda_function" "event_stream_processor_lambda" {
-  filename         = data.archive_file.event_stream_processor_lambda_zip.output_path
-  function_name    = "event-stream-processor-lambda"
-  role             = aws_iam_role.lambda_role.arn
-  handler          = "lambda_function.lambda_handler"
-  runtime          = "python3.8"
-  
-  environment {
-    variables = {
-      MONGO_URI     = "$${MONGO_DB_URI}"
-      MONGO_DB_NAME = "BoxDB"
-    }
-  }
 }
 
 # Lambda event source mapping

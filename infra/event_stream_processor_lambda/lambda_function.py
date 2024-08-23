@@ -1,22 +1,31 @@
 import json
 import os
+import socket
 from pymongo import MongoClient
+import requests
 
 def lambda_handler(event, context):
-    # MongoDB Atlas connection string
-    mongo_uri = os.environ['MONGO_DB_URI']
+    print('Processing event:', json.dumps(event))
+
+    # Testing
+    response = requests.get('https://api.ipify.org')
+    ip_address = response.text
+    print(f"Outbound IP address: {ip_address}")
+
+    mongo_uri = os.environ.get('MONGO_DB_URI')
     
-    # Connect to MongoDB
     client = MongoClient(mongo_uri)
-    db = client[os.environ['MONGO_DB_NAME']]
+    print('Created mongo client')
+    db = client['BoxDB']
     collection = db['event_stream']
     
     # Process SQS messages
     for record in event['Records']:
-        # Parse the message body
-        message = json.loads(record['body'])
+        print('inserting message:', record['body'])
         
-        # Insert the message into MongoDB
+        message = json.loads(record['body'])
+        print('Message', message)
+        # Insert into mongo
         collection.insert_one(message)
     
     client.close()

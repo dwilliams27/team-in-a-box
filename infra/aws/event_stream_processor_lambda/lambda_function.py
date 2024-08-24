@@ -1,6 +1,5 @@
 import json
 import os
-import socket
 from pymongo import MongoClient
 import requests
 

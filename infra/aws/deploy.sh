@@ -8,4 +8,8 @@ cd event_stream_processor_lambda
 ./package_lambda.sh
 cd ../
 
+cd outbound_event_lambda
+./package_lambda.sh
+cd ../
+
 terraform apply

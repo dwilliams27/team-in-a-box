@@ -64,6 +64,9 @@ Processes inbound events from webhooks like slack, post to SQS, load into mongo
                 "ec2:ModifyVpcAttribute",
                 "ec2:CreateSecurityGroup",
                 "ec2:DescribeSecurityGroups",
+                "ec2:DeleteSecurityGroup",
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:ModifySubnetAttribute"
             ],
             "Resource": "*"
         }

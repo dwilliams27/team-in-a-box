@@ -1,75 +1,43 @@
-## team-in-a-box
+# team-in-a-box
 📦
 
-### Building infra
+## Setup
 
+### Digital ocean
+Create digital ocean account and set `DIGITAL_OCEAN_TOKEN` to a personal access token.
 
-#### Env vars to set
+Generate ssh key via `./scripts/ssh-keygen.sh your_email@example.com`.
+
+Add the ssh key to your digital ocean account (name the key 'local-tiab')
+
+### Cloudflare
+Create a cloudflare account to be able to deploy workers
+
+### MongoDB
+Create a mongo account and spin up a free tier db
+You will also need to create a mongo atlas app. Put the app id in the .env file
+Will also need to enable api key based login in the mongo atlas app
+
+### Slack
+Make a slack app
+Add inbound-event-worker to the slack app (https://api.slack.com/apps/A07HPTF0BMF/event-subscriptions?)
+
+### Add to root .env
+```
+DIGITAL_OCEAN_TOKEN
+DIGITAL_OCEAN_DROPLET_IP
+DIGITAL_OCEAN_SSH_FINGERPRINT
+
+CLOUDFLARE_ACCOUNT_ID
+CLOUDFLARE_API_TOKEN
+
 ANTHROPIC_API_KEY
-LANGCHAIN_API_KEY
-TAVILY_API_KEY
+TIAB_DOCKER_REGISTRY
+
 MONGO_DB_URI
 
-#### event-stream lambdas
-Processes inbound events from webhooks like slack, post to SQS, load into mongo
-
-```sh
-./build.sh
-# Use output api_gateway_url in Slack App webhook
+ATLAS_APP_ID
+ATLAS_APP_PUBLIC_KEY
+ATLAS_APP_PRIVATE_KEY
 ```
 
-#### Mongodb setup
-- Get free atlas tier
-- Set up Ip access list https://www.mongodb.com/docs/atlas/security/ip-access-list/ with lamba's 
-
-#### AWS
-- Not free
-
-- Use user policy:
-```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ec2:CreateVpc",
-                "ec2:DeleteVpc",
-                "ec2:CreateSubnet",
-                "ec2:DeleteSubnet",
-                "ec2:CreateRouteTable",
-                "ec2:DeleteRouteTable",
-                "ec2:CreateRoute",
-                "ec2:DeleteRoute",
-                "ec2:CreateInternetGateway",
-                "ec2:DeleteInternetGateway",
-                "ec2:AttachInternetGateway",
-                "ec2:DetachInternetGateway",
-                "ec2:AllocateAddress",
-                "ec2:ReleaseAddress",
-                "ec2:AssociateRouteTable",
-                "ec2:DisassociateRouteTable",
-                "ec2:CreateNatGateway",
-                "ec2:DeleteNatGateway",
-                "ec2:DescribeVpcs",
-                "ec2:DescribeSubnets",
-                "ec2:DescribeRouteTables",
-                "ec2:DescribeInternetGateways",
-                "ec2:DescribeAddresses",
-                "ec2:DescribeNatGateways",
-                "ec2:DescribeNetworkInterfaces",
-                "ec2:CreateTags",
-                "ec2:DescribeAddressesAttribute",
-                "ec2:DescribeVpcAttribute",
-                "ec2:ModifyVpcAttribute",
-                "ec2:CreateSecurityGroup",
-                "ec2:DescribeSecurityGroups",
-                "ec2:DeleteSecurityGroup",
-                "ec2:RevokeSecurityGroupEgress",
-                "ec2:ModifySubnetAttribute"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-```

@@ -1,7 +1,0 @@
-export const INBOUND_EVENT_NAMES = {
-  SLACK_MESSAGE_POSTED: 'SLACK_MESSAGE_POSTED'
-}
-
-export const OUTBOUND_EVENT_TYPES = {
-
-}

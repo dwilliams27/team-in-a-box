@@ -1,0 +1,6 @@
+{
+  "name": "@box/typescript-config",
+  "exports": {
+    "./base.json": "./base.json"
+  }
+}

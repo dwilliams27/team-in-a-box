@@ -1,0 +1,19 @@
+{
+  "name": "brain",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "sync-secrets": "sh ./../../scripts/cloudflare/sync-worker-secrets.sh | npx wrangler secret bulk",
+    "dev": "echo 'Add dev script here'",
+    "build": "echo 'Add build script here'",
+    "test": "echo 'Add test script here'",
+    "lint": "echo 'Add lint script here'"
+  },
+  "devDependencies": {
+    "@types/mongodb": "^4.0.7"
+  },
+  "dependencies": {
+    "@types/agenda": "^4.1.0",
+    "agenda": "^5.0.0"
+  }
+}

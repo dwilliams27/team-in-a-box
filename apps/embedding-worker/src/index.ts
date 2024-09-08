@@ -6,6 +6,8 @@ export interface EmbeddingWorkerEnv {
 	ATLAS_APP_ID: string;
 	ATLAS_CF_USERNAME: string;
 	ATLAS_CF_PASSWORD: string;
+
+	OPENAI_API_KEY: string;
 }
 
 const PROCESSING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
@@ -30,35 +32,37 @@ export default {
 			const timeoutThreshold = new Date(now.getTime() - PROCESSING_TIMEOUT);
 			const boxDb = client.db(BOX_DB_NAME);
 
-			const result: { value: InboundEventStreamDB } = await boxDb.collection(BOX_DB_INBOUND_EVENT_STREAM_COLLECTION).findOneAndUpdate(
+			const result: InboundEventStreamDB = await boxDb.collection(BOX_DB_INBOUND_EVENT_STREAM_COLLECTION).findOneAndUpdate(
 				{
 					$or: [
 						{ status: EventStreamStatus.PENDING },
-						{ status: EventStreamStatus.PROCESSING, processingStartedAt: { $lt: timeoutThreshold } }
+						{ status: EventStreamStatus.PROCESSING, processing_started_at: { $lt: timeoutThreshold } }
 					]
 				},
 				{
 					$set: {
-						status: "processing",
-						processingStartedAt: now
+						status: EventStreamStatus.PROCESSING,
+						processing_started_at: now
 					}
 				},
-				{ sort: { _id: 1 } }
+				{ sort: { _id: 1 }, returnNewDocument: true }
 			);
 
-			if (result.value) {
-				console.log(`Processing event ${result.value.id}...`);
+			console.log('Record from DB', result);
+
+			if (result) {
+				console.log(`Processing event ${result.id}...`);
 				try {
-					switch (result.value.type) {
+					switch (result.type) {
 						case EventType.SLACK: {
-							await handleSlackEmbedding(result.value, boxDb);
+							await handleSlackEmbedding(result, boxDb, env);
 						}
 					}
 				} catch (error) {
 					console.log('Error when trying to generate embedding', error);
 					await boxDb.collection(BOX_DB_INBOUND_EVENT_STREAM_COLLECTION).updateOne(
-						{ id: result.value.id },
-						{ $set: { status: EventStreamStatus.FAILED } }
+						{ id: result.id },
+						{ $set: { status: EventStreamStatus.FAILED, processing_error: error } }
 					);
 				}
 			}

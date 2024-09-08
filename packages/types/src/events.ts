@@ -62,8 +62,8 @@ export class InboundSlackMessagePostedEvent implements InboundEvent {
   }
 }
 
-export const INBOUND_EVENT_STREAM_ID_PREFIX = 'inbound_event_';
-export const OUTBOUND_EVENT_STREAM_ID_PREFIX = 'outbound_event_';
+export const INBOUND_EVENT_STREAM_ID_PREFIX = 'inbound_event';
+export const OUTBOUND_EVENT_STREAM_ID_PREFIX = 'outbound_event';
 
 export enum EventStreamStatus {
   PENDING = "PENDING",
@@ -75,7 +75,8 @@ export enum EventStreamStatus {
 export interface InboundEventStreamDB {
   id: string;
   status: EventStreamStatus;
-  processingStartedAt?: Date;
+  processing_started_at?: Date;
+  processing_error: string | null;
   type: EventType;
   slack?: SlackEvent;
 }

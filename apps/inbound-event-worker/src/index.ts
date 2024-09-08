@@ -1,6 +1,4 @@
 import * as Realm from 'realm-web';
-import { nanoid } from 'nanoid';
-import { BOX_DB_EVENT_STREAM_COLLECTION, BOX_DB_NAME, SlackEvent, EventStreamDB } from '@box/types';
 import { processSlackEvent } from './process-slack-event';
 
 export interface InboundEventWorkerEnv {

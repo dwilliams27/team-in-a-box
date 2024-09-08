@@ -6,7 +6,7 @@ PROJECT_ROOT="$( cd "$SCRIPT_DIR/../.." && pwd )"
 ENV_FILE="$PROJECT_ROOT/.env"
 
 # Specify the secrets you want to include
-SECRETS=("ATLAS_PROJECT_ID" "MONGO_DB_URI" "ATLAS_APP_ID" "ATLAS_CF_USERNAME" "ATLAS_CF_PASSWORD")
+SECRETS=("ATLAS_PROJECT_ID" "MONGO_DB_URI" "ATLAS_APP_ID" "ATLAS_CF_USERNAME" "ATLAS_CF_PASSWORD" "OPENAI_API_KEY")
 
 # Initialize an empty JSON object
 json="{"

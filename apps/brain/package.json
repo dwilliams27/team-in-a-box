@@ -2,6 +2,7 @@
   "name": "brain",
   "version": "0.0.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "sync-secrets": "sh ./../../scripts/cloudflare/sync-worker-secrets.sh | npx wrangler secret bulk",
     "dev": "echo 'Add dev script here'",
@@ -13,7 +14,11 @@
     "@types/mongodb": "^4.0.7"
   },
   "dependencies": {
+    "@langchain/anthropic": "^0.2.17",
+    "@langchain/mongodb": "^0.0.6",
     "@types/agenda": "^4.1.0",
-    "agenda": "^5.0.0"
+    "agenda": "^5.0.0",
+    "langchain": "^0.2.18",
+    "nanoid": "^5.0.7"
   }
 }

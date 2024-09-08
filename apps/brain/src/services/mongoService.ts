@@ -3,7 +3,7 @@ import { InjectableService } from '@brain/services/injectableService';
 import { ServiceLocator } from '@brain/services/serviceLocator';
 
 const DB_URI = process.env.MONGO_DB_URI || 'mongodb://localhost:27017/BoxDB';
-const MONGO_SERVICE_NAME = 'MONGO_SERVICE';
+export const MONGO_SERVICE_NAME = 'MONGO_SERVICE';
 
 export class MongoService extends InjectableService {
   client: MongoClient;

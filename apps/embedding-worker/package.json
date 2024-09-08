@@ -1,5 +1,5 @@
 {
-  "name": "inbound-event-worker",
+  "name": "embedding-worker",
   "version": "0.0.1",
   "private": true,
   "scripts": {

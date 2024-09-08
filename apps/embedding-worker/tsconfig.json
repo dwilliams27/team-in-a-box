@@ -6,6 +6,9 @@
 		"jsx": "react-jsx",
 		"module": "es2022",
 		"moduleResolution": "Bundler",
+		"types": [
+			"@cloudflare/workers-types/2023-07-01"
+		],
 		"resolveJsonModule": true,
 		"allowJs": true,
 		"checkJs": false,
@@ -14,13 +17,7 @@
 		"allowSyntheticDefaultImports": true,
 		"forceConsistentCasingInFileNames": true,
 		"strict": true,
-		"skipLibCheck": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "baseUrl": ".",
-    "paths": {
-      "@brain/*": ["src/*"]
-    }
+		"skipLibCheck": true
 	},
 	"exclude": ["test"],
 	"include": ["worker-configuration.d.ts", "src/**/*.ts"]

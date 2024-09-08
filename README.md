@@ -2,6 +2,7 @@
 📦
 
 ## Setup
+Setup requires many manual steps at the moment unfortunately, will automate more of it later.
 
 ### Digital ocean
 Create digital ocean account and set `DIGITAL_OCEAN_TOKEN` to a personal access token.
@@ -14,9 +15,11 @@ Add the ssh key to your digital ocean account (name the key 'local-tiab')
 Create a cloudflare account to be able to deploy workers
 
 ### MongoDB
-Create a mongo account and spin up a free tier db
-You will also need to create a mongo atlas app. Put the app id in the .env file
-Will also need to enable api key based login in the mongo atlas app
+- Create a mongo account and spin up a free tier db
+- Create a mongo atlas app
+- Give it permission to write and read to everything
+- Create a username/password combo
+- Will need to add `readAndWriteAll` roles to all tables
 
 ### Slack
 Make a slack app
@@ -32,12 +35,18 @@ CLOUDFLARE_ACCOUNT_ID
 CLOUDFLARE_API_TOKEN
 
 ANTHROPIC_API_KEY
+OPENAI_API_KEY
+
 TIAB_DOCKER_REGISTRY
 
 MONGO_DB_URI
 
 ATLAS_APP_ID
-ATLAS_APP_PUBLIC_KEY
-ATLAS_APP_PRIVATE_KEY
+ATLAS_CF_USERNAME
+ATLAS_CF_PASSWORD
 ```
+
+### Syncing secrets
+After modifying the root .env file, you'll need to sync the secrets for each cloduflare worker (eventually will do in bulk).
+Cd into apps/{some_worker} and run `npm run sync-secrets`
 

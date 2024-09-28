@@ -22,6 +22,7 @@
     "@box/types": "*",
     "axios": "^1.7.5",
     "nanoid": "^5.0.7",
+    "openai": "^4.65.0",
     "realm-web": "^2.0.1"
   }
 }

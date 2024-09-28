@@ -16,7 +16,6 @@ export class OutboundEventService extends InjectableService {
 
   async queueEvent(event: OutboundEvent) {
     const eventStreamCollection = this.mongoService.getDb().collection(BOX_DB_OUTBOUND_EVENT_STREAM_COLLECTION);
-    console.log(await eventStreamCollection.find());
 
     await eventStreamCollection.insertOne({
       id: `${OUTBOUND_EVENT_STREAM_ID_PREFIX}_${nanoid()}`,

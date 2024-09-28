@@ -7,4 +7,5 @@ export class AgentService extends InjectableService {
   constructor(serviceLocator: ServiceLocator, agentId: string) {
     super(serviceLocator, AGENT_SERVICE_NAME);
   }
+
 }

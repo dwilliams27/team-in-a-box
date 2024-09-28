@@ -20,6 +20,7 @@ Create a cloudflare account to be able to deploy workers
 - Give it permission to write and read to everything
 - Create a username/password combo
 - Will need to add `readAndWriteAll` roles to all tables
+- [Set up vector search index](https://www.mongodb.com/docs/atlas/atlas-vector-search/ai-integrations/langchain-js/#create-the-atlas-vector-search-index) on slack_data collection
 
 ### Slack
 Make a slack app

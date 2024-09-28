@@ -1,8 +1,5 @@
 import { ServiceLocator } from '@brain/services';
 import { MongoService } from '@brain/services/mongoService';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 class App {
   db: MongoService;

@@ -1,1 +1,4 @@
-export interface Agent {};
+export interface BoxAgentDB {
+  id: string;
+  name: string;
+};

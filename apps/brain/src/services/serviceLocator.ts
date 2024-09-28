@@ -1,7 +1,7 @@
 import { InjectableService } from "./injectableService";
 
 export class ServiceLocator {
-  private services: { [key: string]: InjectableService };
+  private services: Record<string, InjectableService>;
 
   constructor() {
     this.services = {};

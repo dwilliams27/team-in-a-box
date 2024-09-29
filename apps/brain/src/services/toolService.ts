@@ -1,21 +1,24 @@
 import { InjectableService } from "@brain/services/injectableService";
 import { ServiceLocator } from "@brain/services/serviceLocator";
-import { Tool } from "@brain/tools/tool";
+import { BoxTool } from "@brain/tools/tool";
 
 export const TOOL_SERVICE_NAME = 'TOOL_SERVICE';
 
 export class ToolService extends InjectableService {
-  tools: Record<string, Tool<any>> = {};
+  tools: Record<string, BoxTool<any>> = {};
 
   constructor(serviceLocator: ServiceLocator) {
     super(serviceLocator, TOOL_SERVICE_NAME);
   }
 
-  registerTool(tool: Tool<any>) {
+  registerTool(tool: BoxTool<any>) {
     this.tools[tool.name] = tool;
   }
 
-  getTool(name: string) {
-    return this.tools[name];
+  getTool<T>(name: string) {
+    if (!this.tools[name]) {
+      throw new Error('Could not find tool!');
+    }
+    return this.tools[name] as T;
   }
 }

@@ -2,14 +2,14 @@ import { OutboundEventNames } from "@box/types";
 import { BoxAgent } from "@brain/agents/agent";
 import { ServiceLocator } from "@brain/services";
 import { OUTBOUND_EVENT_SERVICE_NAME, OutboundEventService } from "@brain/services/outboundEventService";
-import { Tool } from "@brain/tools/tool";
+import { BoxTool } from "@brain/tools/tool";
 import { z } from "zod";
 
 export enum SlackChannel {
   general = 'general'
 }
 
-export const PostToSlackToolName = 'postToSlack';
+export const POST_SLACK_TOOL_NAME = 'postToSlack';
 
 const PostToSlackToolSchema = z.object({
   message: z.string().describe("The message you would like to post."),
@@ -20,9 +20,9 @@ const PostToSlackToolSchema = z.object({
 
 type PostToSlackToolArgs = z.infer<typeof PostToSlackToolSchema>;
 
-export class PostToSlackTool implements Tool<PostToSlackToolArgs> {
+export class PostToSlackTool implements BoxTool<PostToSlackToolArgs> {
   schema = PostToSlackToolSchema;
-  name = PostToSlackToolName;
+  name = POST_SLACK_TOOL_NAME;
   description = "Posts a message to a specific Slack channel.";
   serviceLocator: ServiceLocator;
 
@@ -37,7 +37,7 @@ export class PostToSlackTool implements Tool<PostToSlackToolArgs> {
       payload: {
         message: toolArgs.message,
         channel: toolArgs.channel,
-        agentId: agent.dbInfo.id,
+        agentId: agent.personaFromDB?.id || null,
       }
     });
     return { sucess: true };

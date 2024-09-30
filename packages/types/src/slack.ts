@@ -14,5 +14,6 @@ export interface SlackEvent {
 export interface SlackMessageDB {
   id: string;
   event: SlackEvent;
+  sourceEvent: string;
   embedding: number[];
 }

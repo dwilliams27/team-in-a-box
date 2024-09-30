@@ -9,9 +9,9 @@ export class BoxPrompt {
     this.values = values;
   }
 
-  static fromTemplate(template: string) {
+  static fromTemplate(template: string, values?: Record<string, string>) {
     const params = new Set(template.match(/{{(.*?)}}/g)?.map((param) => param.slice(2, -2)));
-    return new BoxPrompt(template, params, {});
+    return new BoxPrompt(template, params, values || {});
   }
 
   setParam(key: string, value: string) {

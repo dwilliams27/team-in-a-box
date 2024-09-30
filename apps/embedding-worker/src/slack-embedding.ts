@@ -48,6 +48,7 @@ async function insertSlackEmbedding(originalId: string, slackEvent: SlackEvent, 
     id: `${SLACK_DATA_ID_PREFIX}_${nanoid()}`,
     event: slackEvent,
     embedding,
+    sourceEvent: originalId,
   }
   await db.collection(BOX_DB_SLACK_DATA_COLLECTION).insertOne(slackRecord);
 

@@ -1,6 +1,6 @@
 import { InjectableService } from "@brain/services/injectableService";
 import { ServiceLocator } from "@brain/services/serviceLocator";
-import { BOX_DB_OUTBOUND_EVENT_STREAM_COLLECTION, EventStreamStatus, OUTBOUND_EVENT_STREAM_ID_PREFIX, OutboundEvent } from "@box/types";
+import { BOX_DB_OUTBOUND_EVENT_STREAM_COLLECTION, EventStreamStatus, OUTBOUND_EVENT_STREAM_ID_PREFIX, OutboundEvent, OutboundEventNames, OutboundEventStreamDB, SlackEvent } from "@box/types";
 import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/mongoService";
 import { nanoid } from "nanoid";
 
@@ -15,12 +15,17 @@ export class OutboundEventService extends InjectableService {
   }
 
   async queueEvent(event: OutboundEvent) {
-    const eventStreamCollection = this.mongoService.getDb().collection(BOX_DB_OUTBOUND_EVENT_STREAM_COLLECTION);
+    const eventStreamCollection = this.mongoService.getCollection<OutboundEventStreamDB>(BOX_DB_OUTBOUND_EVENT_STREAM_COLLECTION);
 
-    await eventStreamCollection.insertOne({
-      id: `${OUTBOUND_EVENT_STREAM_ID_PREFIX}_${nanoid()}`,
-      status: EventStreamStatus.PENDING,
-      slack: event
-    });
+    switch (event.name) {
+      case (OutboundEventNames.SLACK_POST_MESSAGE): {
+        await eventStreamCollection.insertOne({
+          id: `${OUTBOUND_EVENT_STREAM_ID_PREFIX}_${nanoid()}`,
+          status: EventStreamStatus.PENDING,
+          slack: event as unknown as SlackEvent
+        });
+        break;
+      }
+    }
   }
 }

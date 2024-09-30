@@ -2,8 +2,8 @@ version: '3'
 services:
   brain:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: ./apps/brain/Dockerfile
     ports:
       - "3000:3000"
     environment:

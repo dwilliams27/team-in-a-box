@@ -18,3 +18,7 @@ export interface Thought {
   slackContext: SlackContext;
   githubContext: GithubContext;
 }
+
+export interface BrainEvent {
+  prompt: string;
+}

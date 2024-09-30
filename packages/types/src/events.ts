@@ -1,3 +1,4 @@
+import { BrainEvent } from "./brain";
 import { SlackEvent } from "./slack";
 
 export const InboundEventNames = {
@@ -29,6 +30,7 @@ export enum EventType {
   GITHUB = 'GITHUB',
   SLACK = 'SLACK',
   TICKET = 'TICKET',
+  BRAIN = 'BRAIN',
 }
 export type TEventType = keyof typeof EventType;
 
@@ -79,6 +81,7 @@ export interface InboundEventStreamDB {
   processing_error: string | null;
   type: EventType;
   slack?: SlackEvent;
+  brain?: BrainEvent;
 }
 
 export interface OutboundEventStreamDB {

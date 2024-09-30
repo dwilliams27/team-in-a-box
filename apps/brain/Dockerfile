@@ -2,10 +2,10 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY ./apps/brain/package.json ./
+RUN npm i
 
-COPY . .
+COPY ./apps/brain/ .
 
 RUN npm run build
 

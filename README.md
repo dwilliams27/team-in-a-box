@@ -51,3 +51,8 @@ ATLAS_CF_PASSWORD
 After modifying the root .env file, you'll need to sync the secrets for each cloduflare worker (eventually will do in bulk).
 Cd into apps/{some_worker} and run `npm run sync-secrets`
 
+### Brain
+Set
+```
+BRAIN_SECRET_TOKEN={your_secret_here}
+```

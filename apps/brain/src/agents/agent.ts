@@ -20,8 +20,10 @@ export interface BoxPipelineStageOutput {
   contextSchema: Set<string>;
 }
 
-export enum SharedContextKeys {
-  AgentInformation = 'AgentInformation'
+export interface SharedContext {
+  agentInformation?: BoxAgent,
+  ticketInformation?: string,
+  goalInformation?: string,
 } 
 
 export class BoxPipelineStage {
@@ -42,7 +44,7 @@ export class BoxPipelineStage {
     this.serviceLocator = opts.serviceLocator;
   }
   
-  run(sharedContext: Record<SharedContextKeys, any>): Promise<BoxPipelineStageOutput> {
+  run(sharedContext: SharedContext): Promise<BoxPipelineStageOutput> {
     throw new Error('Must implement run');
   }
 
@@ -56,21 +58,19 @@ export class BoxPipelineStage {
 }
 
 export class BoxPipeline {
-  sharedContext: Record<string, any>;
   stageHead: BoxPipelineStage;
   currentStage: BoxPipelineStage | null;
   stageStack: BoxPipelineStage[];
 
-  constructor(opts: { stageHead: BoxPipelineStage, sharedContext?: Record<SharedContextKeys, any> }) {
-    this.sharedContext = opts.sharedContext || {};
+  constructor(opts: { stageHead: BoxPipelineStage }) {
     this.stageHead = opts.stageHead;
     this.currentStage = opts.stageHead;
     this.stageStack = [];
   }
 
-  async execute() {
+  async execute(sharedContext: SharedContext) {
     while (this.currentStage) {
-      const executionResult = await this.currentStage.run(this.sharedContext);
+      const executionResult = await this.currentStage.run(sharedContext);
       switch (executionResult.status) {
         case (PipelineResult.CONTINUE): {
           if (!this.currentStage.nextStage) {
@@ -113,6 +113,13 @@ export class BoxAgent {
     this.serviceLocator = serviceLocator;
     this.pipeline = pipeline;
     this.personaFromDB = null;
+  }
+
+  async executePipelineForPersona(persona: BoxPersonaDB) {
+    const sharedContext: SharedContext = {
+      agentInformation: this,
+    };
+    return this.pipeline.execute(sharedContext);
   }
 
   async loadPersonaInfoFromDB(id: string) {

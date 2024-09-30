@@ -34,8 +34,8 @@ export class MongoService extends InjectableService {
     return this.db;
   }
 
-  getCollection(collectionName: string) {
-    return this.getDb().collection(collectionName);
+  getCollection<T extends Document>(collectionName: string) {
+    return this.getDb().collection<T>(collectionName);
   }
 
   async querySlackVectorStore(query: string): Promise<SlackEvent[]> {

@@ -30,14 +30,14 @@ export class PostToSlackTool implements BoxTool<PostToSlackToolArgs> {
     this.serviceLocator = serviceLocator;
   }
 
-  async invoke(toolArgs: PostToSlackToolArgs, agent: BoxAgent) {
+  async invoke(toolArgs: PostToSlackToolArgs, agent?: BoxAgent) {
     const outboundEventService: OutboundEventService = this.serviceLocator.getService(OUTBOUND_EVENT_SERVICE_NAME);
     outboundEventService.queueEvent({
       name: OutboundEventNames.SLACK_POST_MESSAGE,
       payload: {
         message: toolArgs.message,
         channel: toolArgs.channel,
-        agentId: agent.personaFromDB?.id || null,
+        agentId: agent?.personaFromDB?.id || null,
       }
     });
     return { sucess: true };

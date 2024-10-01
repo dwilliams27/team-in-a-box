@@ -1,3 +1,4 @@
+import chalk from "chalk";
 import { ServiceLocator } from "./serviceLocator";
 
 export class InjectableService {
@@ -11,6 +12,16 @@ export class InjectableService {
       serviceKey: serviceName,
       serviceValue: this,
     });
-    console.log(`Created InjectableService: ${serviceName}`);
+    console.log(`${chalk.green('Created InjectableService: ')}${chalk.yellow(serviceName)}`);
+  }
+
+  log(messages: string | string[], data?: (string | undefined | null)[]) {
+    console.log(`${chalk.green(this.serviceName)}\n${Array.isArray(messages) ? messages.map((message, i) => {
+        if (data && data.length > i) {
+          return `- ${chalk.yellow(message)}: ${chalk.blueBright(data[i])}`;
+        }
+        return chalk.yellow(message);
+      }).join('\n') : chalk.yellow(messages)}
+    `);
   }
 }

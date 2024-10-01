@@ -10,6 +10,8 @@ import { ChatCompletionMessageToolCall } from "openai/resources/index.mjs";
 export const GPT_SERVICE_NAME = 'GPT_SERVICE';
 
 export class GPTService extends InjectableService {
+  totalTokens = 0;
+
   constructor(serviceLocator: ServiceLocator, apiKey: string) {
     super(serviceLocator, GPT_SERVICE_NAME);
   }
@@ -60,6 +62,21 @@ export class GPTService extends InjectableService {
       acc[tool.function.name] = tool;
       return acc;
     }, {});
+
+    this.log([JSON.stringify(result || '')]);
+
+    this.totalTokens += result.usage?.total_tokens || 0;
+    this.log(
+      [
+        'GPT query result',
+        'Tool calls',
+        'Tokens used'
+      ],
+      [
+        result.choices[0]?.message.content || 'null',
+        result.choices[0]?.message.tool_calls?.map((toolCall) => `${toolCall.function.name}: ${toolCall.function.arguments.concat('|')}`).join(', '),
+        `${result.usage?.total_tokens || 0} (${this.totalTokens} total)`
+      ]);
 
     return { result, toolCalls };
   }

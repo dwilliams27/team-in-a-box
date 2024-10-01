@@ -17,6 +17,9 @@ export class ServiceLocator {
   }
 
   getService<T>(name: string): T {
+    if (!this.services[name]) {
+      throw new Error(`Could not find service ${name}! Did you initialize it?`);
+    }
     return this.services[name] as unknown as T;
   }
 }

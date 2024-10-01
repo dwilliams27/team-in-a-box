@@ -1,6 +1,9 @@
 import { AgentService, ServiceLocator } from '@brain/services';
+import { GPTService } from '@brain/services/gptService';
 import { MongoService } from '@brain/services/mongoService';
 import { POLL_SERVICE_NAME, PollService } from '@brain/services/pollService';
+import { ToolService } from '@brain/services/toolService';
+import chalk from 'chalk';
 import dotenv from 'dotenv';
 import process from "node:process";
 
@@ -11,40 +14,47 @@ class App {
   rootServiceLocator: ServiceLocator;
 
   constructor() {
-    console.log('🧠 started');
+    console.log(`🧠 ${chalk.green('started')}`);
     this.rootServiceLocator = new ServiceLocator();
     this.db = new MongoService(this.rootServiceLocator);
 
     this.db.connect().then(() => {
+      this.registerRootServices();
       this.mainInit();
     }).catch(error => {
-      console.error('Failed to connect to the database:', error);
+      console.error('Error during initialization:', error);
       process.exit(1);
     });
-
-    this.registerCoreServices();
     this.setupGracefulShutdown();
   }
 
   setupGracefulShutdown() {
     process.on('SIGINT', async () => {
-      console.log('Shutting down...');
+      console.log(chalk.red('Shutting down...'));
       await this.db.client.close();
       process.exit(0);
     });
 
     process.on('SIGTERM', async () => {
-      console.log('Shutting down...');
+      console.log(chalk.red('Shutting down...'));
       await this.db.client.close();
       process.exit(0);
     });
   }
 
-  registerCoreServices() {
+  registerRootServices() {
     // Services auto-register themselves with the root service locator
     // so dont need to save refs
+    // Order matters :yikes:
+    new ToolService(this.rootServiceLocator);
     new AgentService(this.rootServiceLocator);
     new PollService(this.rootServiceLocator);
+    if (process.env.OPENAI_API_KEY) {
+      new GPTService(this.rootServiceLocator, process.env.OPENAI_API_KEY);
+    } else {
+      console.error('Unable to create GPT service, missing OPENAI_API_KEY');
+      process.exit(1);
+    }
   }
 
   async mainInit() {

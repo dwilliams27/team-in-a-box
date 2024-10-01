@@ -21,4 +21,5 @@ export interface Thought {
 
 export interface BrainEvent {
   prompt: string;
+  forPersona?: { name?: string, id?: string };
 }

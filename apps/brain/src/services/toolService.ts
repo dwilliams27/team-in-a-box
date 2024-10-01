@@ -12,6 +12,9 @@ export class ToolService extends InjectableService {
   }
 
   registerTool(tool: BoxTool<any>) {
+    if (this.tools[tool.name]) {
+      throw new Error('Tool already exists!');
+    }
     this.tools[tool.name] = tool;
   }
 

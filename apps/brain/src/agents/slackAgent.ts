@@ -5,6 +5,7 @@ import { GPT_SERVICE_NAME, GPTService } from "@brain/services/gptService";
 import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/mongoService";
 import { TOOL_SERVICE_NAME, ToolService } from "@brain/services/toolService";
 import { POST_SLACK_TOOL_NAME, PostToSlackTool } from "@brain/tools/slack";
+import chalk from "chalk";
 
 export enum SlackPipelineContextKeys {
   UserPrompt = 'UserPrompt',
@@ -48,18 +49,33 @@ class SlackHeadStage extends BoxPipelineStage {
 
     (this.input.context[SlackPipelineContextKeys.SystemPrompt] as BoxPrompt).setParam(
       SlackPipelineSystemContextKeys.Persona,
-      sharedContext.agentInformation?.personaFromDB?.systemPrompt || 'No personality.'
+      sharedContext.personaInformation?.systemPrompt || 'No personality.'
     );
 
-    const { result, toolCalls } = await gptService.query(this.input.context.systemPrompt, this.input.context.userPrompt, [slackTool]);
+    const { result, toolCalls } = await gptService.query(this.input.context[SlackPipelineContextKeys.SystemPrompt], this.input.context[SlackPipelineContextKeys.UserPrompt], [slackTool]);
+
+    // TODO: clean up filter logic
+    if (sharedContext.personaInformation?.filter && toolCalls && toolCalls[slackTool.name]) {
+      Object.keys(sharedContext.personaInformation?.filter).forEach((filterKey) => {
+        let slackToolCall = toolCalls[slackTool.name];
+        if (slackToolCall?.function.arguments) {
+          const newArguments = slackToolCall.function.arguments.replace(new RegExp(filterKey, 'gi'), sharedContext.personaInformation?.filter?.[filterKey] || '') || '';
+          slackToolCall.function.arguments = newArguments;
+        }
+      });
+    }
+
+    console.log(`${chalk.yellow(sharedContext.personaInformation?.name)}: ${chalk.blueBright(toolCalls?.[slackTool.name]?.function.arguments)}`);
+
     if (toolCalls) {
       if (toolCalls[slackTool.name]) {
-        const slackResult = await slackTool.invoke(JSON.parse(toolCalls[slackTool.name]?.function.arguments || '{}'), sharedContext.agentInformation);
+        const slackResult = await slackTool.invoke(JSON.parse(toolCalls[slackTool.name]?.function.arguments || '{}'), sharedContext);
         if (!slackResult.sucess) {
           throw new Error('Failed to post to slack!');
         }
       }
     }
+
     return {
       output: result.choices[0]?.message,
       status: PipelineResult.STOP,
@@ -79,13 +95,13 @@ function generateSlackPipeline(serviceLocator: ServiceLocator) {
         {{${SlackPipelineSystemContextKeys.Persona}}}
       `),
       [SlackPipelineContextKeys.UserPrompt]: BoxPrompt.fromTemplate(`
-        Here are some relavent past slack messages:
+        Here are some relavent past slack messages (list may be empty):
         {{${SlackPipelineUserContextKeys.RelaventSlackMessages}}}
         By posting this message, you are trying to:
         {{${SlackPipelineUserContextKeys.Goal}}}
       `)
     },
-    contextSchema: new Set(typeof SlackPipelineContextKeys),
+    contextSchema: new Set(Object.values(SlackPipelineContextKeys)),
   };
 
   const stageHead = new SlackHeadStage({ serviceLocator, input: stageHeadInput });
@@ -94,8 +110,13 @@ function generateSlackPipeline(serviceLocator: ServiceLocator) {
   return pipeline;
 }
 
+export const SLACK_AGENT_NAME = 'SLACK_AGENT';
 export class SlackAgent extends BoxAgent {
   constructor(serviceLocator: ServiceLocator) {
-    super(serviceLocator, generateSlackPipeline(serviceLocator))
+    super(serviceLocator, generateSlackPipeline(serviceLocator), SLACK_AGENT_NAME);
+    const toolService = serviceLocator.getService<ToolService>(TOOL_SERVICE_NAME);
+    toolService.registerTool(new PostToSlackTool(serviceLocator));
+
+    this.sharedContext.goalInformation = 'Give an introduction to the team.';
   }
 }

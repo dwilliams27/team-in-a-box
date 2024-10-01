@@ -1,5 +1,5 @@
 import { OutboundEventNames } from "@box/types";
-import { BoxAgent } from "@brain/agents/agent";
+import { BoxAgent, SharedContext } from "@brain/agents/agent";
 import { ServiceLocator } from "@brain/services";
 import { OUTBOUND_EVENT_SERVICE_NAME, OutboundEventService } from "@brain/services/outboundEventService";
 import { BoxTool } from "@brain/tools/tool";
@@ -30,14 +30,14 @@ export class PostToSlackTool implements BoxTool<PostToSlackToolArgs> {
     this.serviceLocator = serviceLocator;
   }
 
-  async invoke(toolArgs: PostToSlackToolArgs, agent?: BoxAgent) {
+  async invoke(toolArgs: PostToSlackToolArgs, sharedContext: SharedContext) {
     const outboundEventService: OutboundEventService = this.serviceLocator.getService(OUTBOUND_EVENT_SERVICE_NAME);
     outboundEventService.queueEvent({
       name: OutboundEventNames.SLACK_POST_MESSAGE,
       payload: {
         message: toolArgs.message,
         channel: toolArgs.channel,
-        agentId: agent?.personaFromDB?.id || null,
+        agentId: sharedContext.personaInformation?.id || null,
       }
     });
     return { sucess: true };

@@ -1,4 +1,5 @@
 import { BOX_DB_PERSONA_COLLECTION, BoxPersonaDB } from "@box/types";
+import { BoxPrompt } from "@brain/prompts/prompt";
 import { ServiceLocator } from "@brain/services";
 import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/mongoService";
 
@@ -22,6 +23,7 @@ export interface BoxPipelineStageOutput {
 
 export interface SharedContext {
   agentInformation?: BoxAgent,
+  personaInformation?: BoxPersonaDB,
   ticketInformation?: string,
   goalInformation?: string,
 } 
@@ -55,6 +57,13 @@ export class BoxPipelineStage {
       }
     })
   };
+
+  mergeNewInput(input: BoxPipelineStageInput) {
+    input.contextSchema.forEach((contextName) => {
+      this.input.context[contextName] = input.context[contextName];
+      this.input.contextSchema.add(contextName);
+    });
+  }
 }
 
 export class BoxPipeline {
@@ -105,26 +114,34 @@ export class BoxPipeline {
 }
 
 export class BoxAgent {
+  name: string;
   serviceLocator: ServiceLocator;
-  personaFromDB: BoxPersonaDB | null;
   pipeline: BoxPipeline;
+  sharedContext: SharedContext;
 
-  constructor(serviceLocator: ServiceLocator, pipeline: BoxPipeline) {
+  constructor(serviceLocator: ServiceLocator, pipeline: BoxPipeline, name: string) {
     this.serviceLocator = serviceLocator;
     this.pipeline = pipeline;
-    this.personaFromDB = null;
+    this.name = name;
+    this.sharedContext = { agentInformation: this };
   }
 
-  async executePipelineForPersona(persona: BoxPersonaDB) {
-    const sharedContext: SharedContext = {
-      agentInformation: this,
+  async executePipelineForPersona(opts: { persona?: BoxPersonaDB, input?: BoxPipelineStageInput }) {
+    if (opts.input) this.pipeline.stageHead.mergeNewInput(opts.input);
+    this.sharedContext = {
+      ...this.sharedContext,
+      personaInformation: opts.persona,
     };
-    return this.pipeline.execute(sharedContext);
+
+    return this.pipeline.execute(this.sharedContext);
   }
 
-  async loadPersonaInfoFromDB(id: string) {
-    const dbService = this.serviceLocator.getService<MongoService>(MONGO_SERVICE_NAME);
-    const personasCollection = dbService.getCollection(BOX_DB_PERSONA_COLLECTION);
-    this.personaFromDB = (await personasCollection.find({ id })) as unknown as BoxPersonaDB;
+  setInputContextPromptProperty(contextKey: string, promptVariableKey: string, promptVariableValue: string) {
+    if (contextKey in this.pipeline.stageHead.input.contextSchema) {
+      const prompt = this.pipeline.stageHead.input.context[contextKey] as BoxPrompt;
+      (this.pipeline.stageHead.input.context[contextKey] as BoxPrompt).setParam(promptVariableKey, promptVariableValue);
+    } else {
+      throw new Error(`Context property does not exist on ${this.name}`)
+    }
   }
 }

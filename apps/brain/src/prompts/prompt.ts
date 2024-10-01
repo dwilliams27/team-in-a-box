@@ -25,6 +25,7 @@ export class BoxPrompt {
     const res = this.template.replace(/{{(.*?)}}/g, (match, p1) => {
       return this.values[p1] || match;
     });
+    
     return res;
   }
 }

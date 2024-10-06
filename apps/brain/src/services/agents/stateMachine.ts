@@ -99,7 +99,7 @@ export abstract class StateMachineNode<T extends string> {
   };
 
   log(message: string, contextInfo: string[]) {
-    console.log(`${chalk.green(this.nodeName + contextInfo.join(':'))}: ${message}`);
+    console.log(`${chalk.green(`${this.nodeName}:${contextInfo.join(':')}`)}: ${message}`);
   }
 }
 

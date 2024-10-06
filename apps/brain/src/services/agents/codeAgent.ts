@@ -28,6 +28,7 @@ class ModifyProjectNode extends StateMachineNode<CodeStateMachineNodes> {
       userPrompt: BoxPrompt.fromTemplate(`
         You are a code agent.
         You will be asked to reason about how to modify a project, what changes to make, and whether you need additional context to properly modify the project.
+        Your project is written entirely in javascript. It will all be in one file.
         You are part of a team of agents trying to emulate a software engineer.
       `),
       systemPrompt: BoxPrompt.fromTemplate(`

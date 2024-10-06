@@ -56,3 +56,9 @@ Set
 ```
 BRAIN_SECRET_TOKEN={your_secret_here}
 ```
+
+### Github
+
+Create a github org
+Create [github apps](https://docs.github.com/en/apps/creating-github-apps/registering-a-github-app/registering-a-github-app) per persona
+Add in app id, client id, and secret to persona DB record

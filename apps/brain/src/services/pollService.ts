@@ -1,15 +1,13 @@
-import { InjectableService } from "@brain/services/injectableService";
+import { LocatableService } from "@brain/services/locatableService";
 import { ServiceLocator } from "@brain/services/serviceLocator";
-import { BOX_DB_INBOUND_EVENT_STREAM_COLLECTION, BOX_DB_OUTBOUND_EVENT_STREAM_COLLECTION, BOX_DB_PERSONA_COLLECTION, BoxPersonaDB, EventStreamStatus, EventType, InboundEventStreamDB, OUTBOUND_EVENT_STREAM_ID_PREFIX, OutboundEvent } from "@box/types";
+import { BOX_DB_INBOUND_EVENT_STREAM_COLLECTION, BOX_DB_PERSONA_COLLECTION, BoxPersonaDB, EventStreamStatus, EventType, InboundEventStreamDB } from "@box/types";
 import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/mongoService";
 import { Collection } from "mongodb";
-import { AGENT_SERVICE_NAME, AgentService } from "@brain/services/agentService";
-import { SLACK_AGENT_NAME, SlackAgent } from "@brain/agents/slackAgent";
-import { nanoid } from "nanoid";
+import { AGENT_SERVICE_NAME, AgentService, SLACK_AGENT_NAME, SlackAgent } from "@brain/services";
 
 export const POLL_SERVICE_NAME = 'POLL_SERVICE';
 
-export class PollService extends InjectableService {
+export class PollService extends LocatableService {
   mongoService: MongoService;
   
   constructor(serviceLocator: ServiceLocator) {
@@ -34,7 +32,7 @@ export class PollService extends InjectableService {
           await this.getEventLock(newEvent[0], inboundEventsCollection);
           const slackAgent = agentService.getAgent<SlackAgent>(SLACK_AGENT_NAME);
           const matchedPersona = personas.find(persona => persona.id === newEvent[0]?.brain?.forPersona?.id || persona.name === newEvent[0]?.brain?.forPersona?.name);
-          await slackAgent.executePipelineForPersona({ persona: matchedPersona || personas[0] });
+          await slackAgent.executeMachineForPersona({ persona: matchedPersona || personas[0], inputContext: {} });
         } catch (e) {
           console.error('Error processing event:', e);
           // TODO: Bad

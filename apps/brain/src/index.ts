@@ -2,7 +2,7 @@ import { AgentService, ServiceLocator } from '@brain/services';
 import { GPTService } from '@brain/services/gptService';
 import { MongoService } from '@brain/services/mongoService';
 import { POLL_SERVICE_NAME, PollService } from '@brain/services/pollService';
-import { ToolService } from '@brain/services/toolService';
+import { ToolService } from '@brain/services/tools/toolService';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
 import process from "node:process";

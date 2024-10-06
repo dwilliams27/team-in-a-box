@@ -1,15 +1,25 @@
 import { BoxPrompt } from "@brain/prompts/prompt";
-import { InjectableService } from "@brain/services/injectableService";
+import { LocatableService } from "@brain/services/locatableService";
 import { ServiceLocator } from "@brain/services/serviceLocator";
-import { BoxTool } from "@brain/tools/tool";
 import { zodFunction } from "openai/helpers/zod";
 import OpenAI from "openai";
 // Yikes?
 import { ChatCompletionMessageToolCall } from "openai/resources/index.mjs";
+import { BoxTool } from "@brain/services/tools/toolService";
+
+export interface BoxToolCall {
+  tool: BoxTool;
+  call: ChatCompletionMessageToolCall;
+}
+
+export interface CompletionResult {
+  result: any;
+  toolCalls: BoxToolCall[] | null;
+}
 
 export const GPT_SERVICE_NAME = 'GPT_SERVICE';
 
-export class GPTService extends InjectableService {
+export class GPTService extends LocatableService {
   totalTokens = 0;
 
   constructor(serviceLocator: ServiceLocator, apiKey: string) {
@@ -32,9 +42,12 @@ export class GPTService extends InjectableService {
     return embedding.data[0].embedding;
   }
 
-  async query(systemPrompt: BoxPrompt, userPrompt: BoxPrompt, tools: BoxTool<any>[]) {
+  async query(systemPrompt: BoxPrompt, userPrompt: BoxPrompt, tools: BoxTool[]): Promise<CompletionResult> {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
     const parsedTools = tools.map((tool) => {
+      if (!tool.schema) {
+        throw new Error('Tool schema must be initialized');
+      }
       return zodFunction({
         name: tool.name,
         description: tool.description,
@@ -58,10 +71,15 @@ export class GPTService extends InjectableService {
       tools: parsedTools,
     });
 
-    const toolCalls = result.choices[0]?.message.tool_calls?.reduce((acc: Record<string, ChatCompletionMessageToolCall>, tool) => {
-      acc[tool.function.name] = tool;
+    const toolCalls = result.choices[0]?.message.tool_calls?.reduce((acc: BoxToolCall[], call) => {
+      const tool = tools.find((tool) => tool.name === call.function.name);
+      if (!tool) {
+        console.error(`??? Tool not found: ${call.function.name}`);
+        return acc;
+      }
+      acc.push({ call, tool });
       return acc;
-    }, {});
+    }, []) || null;
 
     this.log([JSON.stringify(result || '')]);
 
@@ -76,7 +94,8 @@ export class GPTService extends InjectableService {
         result.choices[0]?.message.content || 'null',
         result.choices[0]?.message.tool_calls?.map((toolCall) => `${toolCall.function.name}: ${toolCall.function.arguments.concat('|')}`).join(', '),
         `${result.usage?.total_tokens || 0} (${this.totalTokens} total)`
-      ]);
+      ]
+    );
 
     return { result, toolCalls };
   }

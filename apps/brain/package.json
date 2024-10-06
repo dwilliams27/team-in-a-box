@@ -12,6 +12,7 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/mongodb": "^4.0.7",
+    "@types/node": "^22.7.4",
     "tsx": "^4.19.1"
   },
   "dependencies": {
@@ -19,6 +20,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "nanoid": "^5.0.7",
+    "octokit": "^4.0.2",
     "openai": "^4.65.0",
     "zod": "^3.23.8"
   }

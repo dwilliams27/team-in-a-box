@@ -1,4 +1,4 @@
-import { InjectableService } from "@brain/services/injectableService";
+import { LocatableService } from "@brain/services/locatableService";
 import { ServiceLocator } from "@brain/services/serviceLocator";
 import { BOX_DB_OUTBOUND_EVENT_STREAM_COLLECTION, EventStreamStatus, OUTBOUND_EVENT_STREAM_ID_PREFIX, OutboundEvent, OutboundEventNames, OutboundEventStreamDB, SlackEvent } from "@box/types";
 import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/mongoService";
@@ -6,7 +6,7 @@ import { nanoid } from "nanoid";
 
 export const OUTBOUND_EVENT_SERVICE_NAME = 'OUTBOUND_EVENT_SERVICE';
 
-export class OutboundEventService extends InjectableService {
+export class OutboundEventService extends LocatableService {
   mongoService: MongoService;
   
   constructor(serviceLocator: ServiceLocator) {

@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { ServiceLocator } from "./serviceLocator";
 
-export class InjectableService {
+export class LocatableService {
   serviceLocator: ServiceLocator;
   serviceName: string;
 
@@ -12,7 +12,7 @@ export class InjectableService {
       serviceKey: serviceName,
       serviceValue: this,
     });
-    console.log(`${chalk.green('Created InjectableService: ')}${chalk.yellow(serviceName)}`);
+    console.log(`${chalk.green('Created LocatableService: ')}${chalk.yellow(serviceName)}`);
   }
 
   log(messages: string | string[], data?: (string | undefined | null)[]) {

@@ -1,8 +1,8 @@
 import { OutboundEventNames } from "@box/types";
-import { BoxAgent, SharedContext } from "@brain/agents/agent";
 import { ServiceLocator } from "@brain/services";
 import { OUTBOUND_EVENT_SERVICE_NAME, OutboundEventService } from "@brain/services/outboundEventService";
-import { BoxTool } from "@brain/tools/tool";
+import { SharedContext } from "@brain/services/agents/stateMachine";
+import { BoxTool } from "@brain/services/tools/toolService";
 import { z } from "zod";
 
 export enum SlackChannel {
@@ -10,24 +10,23 @@ export enum SlackChannel {
 }
 
 export const POST_SLACK_TOOL_NAME = 'postToSlack';
-
 const PostToSlackToolSchema = z.object({
   message: z.string().describe("The message you would like to post."),
   channel: z
     .nativeEnum(SlackChannel)
     .describe("The channel to post your message to."),
 });
-
 type PostToSlackToolArgs = z.infer<typeof PostToSlackToolSchema>;
 
-export class PostToSlackTool implements BoxTool<PostToSlackToolArgs> {
-  schema = PostToSlackToolSchema;
-  name = POST_SLACK_TOOL_NAME;
-  description = "Posts a message to a specific Slack channel.";
-  serviceLocator: ServiceLocator;
-
+export class PostToSlackTool extends BoxTool {
   constructor(serviceLocator: ServiceLocator) {
-    this.serviceLocator = serviceLocator;
+    super({
+      serviceLocator,
+      name: POST_SLACK_TOOL_NAME,
+      description: "Posts a message to a specific Slack channel.",
+      singleton: true,
+      schema: PostToSlackToolSchema
+    });
   }
 
   async invoke(toolArgs: PostToSlackToolArgs, sharedContext: SharedContext) {
@@ -40,6 +39,6 @@ export class PostToSlackTool implements BoxTool<PostToSlackToolArgs> {
         agentId: sharedContext.personaInformation?.id || null,
       }
     });
-    return { sucess: true };
+    return { success: true, result: {} };
   }
 }

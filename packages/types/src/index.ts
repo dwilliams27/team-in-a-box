@@ -4,3 +4,4 @@ export * from './events';
 export * from './brain';
 export * from './parameters';
 export * from './personas';
+export * from './repo';

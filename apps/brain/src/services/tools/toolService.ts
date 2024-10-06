@@ -1,6 +1,5 @@
 import { BoxPersonaDB } from "@box/types";
-import { LocatableService } from "@brain/services/locatableService";
-import { ServiceLocator } from "@brain/services/serviceLocator";
+import { ServiceLocator, LocatableService } from "@brain/services/serviceLocator";
 import { SharedContext } from "@brain/services/stateMachines";
 import { ZodType } from "zod";
 

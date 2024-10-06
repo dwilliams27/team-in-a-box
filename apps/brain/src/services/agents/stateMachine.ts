@@ -1,7 +1,10 @@
 import { BoxPersonaDB } from "@box/types";
 import { BoxPrompt } from "@brain/prompts/prompt";
-import { BoxAgent, ServiceLocator, ToolCallResult } from "@brain/services";
+import { BoxAgent } from "@brain/services/agents/agentService";
 import { CompletionResult } from "@brain/services/gptService";
+import { ServiceLocator } from "@brain/services/serviceLocator";
+import { ToolCallResult } from "@brain/services/tools/toolService";
+import chalk from "chalk";
 
 /* State Machine
 - State: context
@@ -62,6 +65,7 @@ export abstract class StateMachineNode<T extends string> {
   abstract reflect(sharedContext: SharedContext, nodeMap: Record<T, StateMachineNode<T>>, toolCallResults: ToolCallResult[]): Promise<StateTransitionOutput<T>>;
   
   async transition(sharedContext: SharedContext, nodeMap: Record<T, StateMachineNode<T>>): Promise<StateTransitionOutput<T>> {
+    console.log(`${chalk.yellow('Executing transition for node:')} ${chalk.blueBright(this.nodeName)} ${chalk.yellow('for persona')} ${chalk.blueBright(sharedContext.personaInformation?.name)}`);
     let toolCallResults: ToolCallResult[] = [];
 
     const decision = await this.decide(sharedContext, nodeMap);
@@ -93,6 +97,10 @@ export abstract class StateMachineNode<T extends string> {
       }
     })
   };
+
+  log(message: string, contextInfo: string[]) {
+    console.log(`${chalk.green(this.nodeName + contextInfo.join(':'))}: ${message}`);
+  }
 }
 
 export class StateMachine<T extends string> {
@@ -119,6 +127,7 @@ export class StateMachine<T extends string> {
   }
 
   async execute(sharedContext: SharedContext) {
+    console.log(`${chalk.yellow('Executing state machine with nodes:')} ${chalk.blueBright(Object.keys(this.nodeMap).join(', '))}`);
     while (this.currentNode) {
       const result = await this.currentNode.transition(sharedContext, this.nodeMap);
       switch (result.status) {

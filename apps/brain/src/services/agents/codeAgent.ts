@@ -1,11 +1,10 @@
 import { BoxPrompt } from "@brain/prompts/prompt";
-import { BoxAgent, ServiceLocator } from "@brain/services";
 import { GPT_SERVICE_NAME, GPTService } from "@brain/services/gptService";
-import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/mongoService";
-import { SharedContext, StateMachine, StateMachineNode, StateTransitionResult } from "@brain/services/agents/stateMachine";
+import { SharedContext, StateMachineNode, StateTransitionResult } from "@brain/services/agents/stateMachine";
 import { READ_FILE_TOOL_NAME, ReadFileTool, RUN_PROJECT_SCRIPT_TOOL_NAME, RunProjectScriptTool, WRITE_FILE_TOOL_NAME, WriteFileTool } from "@brain/services/tools/codeTools";
-import { TOOL_SERVICE_NAME, ToolService } from "@brain/services/tools/toolService";
+import { TOOL_SERVICE_NAME, ToolCallResult, ToolService } from "@brain/services/tools/toolService";
 import chalk from "chalk";
+import { ServiceLocator } from "@brain/services/serviceLocator";
 
 export enum CodeSystemContextKeys {}
 
@@ -65,7 +64,7 @@ class ModifyProjectNode extends StateMachineNode<CodeStateMachineNodes> {
     };
   }
 
-  async reflect(sharedContext: SharedContext, nodeMap: Record<CodeStateMachineNodes, StateMachineNode<CodeStateMachineNodes>>, toolCallResults: any[]) {
+  async reflect(sharedContext: SharedContext, nodeMap: Record<CodeStateMachineNodes, StateMachineNode<CodeStateMachineNodes>>, toolCallResults: ToolCallResult[]) {
     // TODO actually reflect
     return {
       output: {},

@@ -1,5 +1,6 @@
-import { REPO_SERVICE_NAME, RepoService, ServiceLocator } from "@brain/services";
 import { SharedContext } from "@brain/services/agents/stateMachine";
+import { REPO_SERVICE_NAME, RepoService } from "@brain/services/repoService";
+import { ServiceLocator } from "@brain/services/serviceLocator";
 import { BoxTool } from "@brain/services/tools/toolService";
 import { z, ZodType } from "zod";
 

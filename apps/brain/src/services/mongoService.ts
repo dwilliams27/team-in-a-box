@@ -1,6 +1,5 @@
 import { MongoClient, Db } from 'mongodb';
-import { LocatableService } from '@brain/services/locatableService';
-import { ServiceLocator } from '@brain/services/serviceLocator';
+import { ServiceLocator, LocatableService } from '@brain/services/serviceLocator';
 import { BOX_DB_NAME, BOX_DB_SLACK_DATA_COLLECTION, SLACK_NUM_CONTEXT_EVENTS, SlackEvent, SlackMessageDB } from '@box/types';
 import { GPT_SERVICE_NAME, GPTService } from '@brain/services/gptService';
 
@@ -47,11 +46,10 @@ export class MongoService extends LocatableService {
       {
         "$vectorSearch": {
           "queryVector": embedding,
-          "path": "plot_embedding",
+          "path": "embedding",
           "numCandidates": 100,
           "limit": SLACK_NUM_CONTEXT_EVENTS,
-          // TODO
-          // "index",
+          "index": "vector_index"
         }
       }
     ]).toArray();

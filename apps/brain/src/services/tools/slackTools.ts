@@ -1,9 +1,9 @@
 import { OutboundEventNames } from "@box/types";
-import { ServiceLocator } from "@brain/services";
 import { OUTBOUND_EVENT_SERVICE_NAME, OutboundEventService } from "@brain/services/outboundEventService";
 import { SharedContext } from "@brain/services/agents/stateMachine";
 import { BoxTool } from "@brain/services/tools/toolService";
 import { z } from "zod";
+import { ServiceLocator } from "@brain/services/serviceLocator";
 
 export enum SlackChannel {
   general = 'general'

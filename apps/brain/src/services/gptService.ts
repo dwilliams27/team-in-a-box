@@ -1,6 +1,5 @@
 import { BoxPrompt } from "@brain/prompts/prompt";
-import { LocatableService } from "@brain/services/locatableService";
-import { ServiceLocator } from "@brain/services/serviceLocator";
+import { ServiceLocator, LocatableService } from "@brain/services/serviceLocator";
 import { zodFunction } from "openai/helpers/zod";
 import OpenAI from "openai";
 // Yikes?

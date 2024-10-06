@@ -1,7 +1,5 @@
 import { BoxPersonaDB } from "@box/types";
-import { SlackAgent } from "@brain/services/agents/slackAgent";
-import { LocatableService } from "@brain/services/locatableService";
-import { ServiceLocator } from "@brain/services/serviceLocator";
+import { ServiceLocator, LocatableService } from "@brain/services/serviceLocator";
 import { SharedContext, StateMachine } from "@brain/services/agents/stateMachine";
 
 export class BoxAgent {
@@ -35,8 +33,6 @@ export class AgentService extends LocatableService {
 
   constructor(serviceLocator: ServiceLocator) {
     super(serviceLocator, AGENT_SERVICE_NAME);
-
-    this.registerNewAgent(new SlackAgent(serviceLocator));
   }
 
   async registerNewAgent(agent: BoxAgent) {

@@ -1,6 +1,5 @@
 import { BoxPersonaDB, GitContext } from "@box/types";
-import { LocatableService } from "@brain/services/locatableService";
-import { ServiceLocator } from "@brain/services/serviceLocator";
+import { ServiceLocator, LocatableService } from "@brain/services/serviceLocator";
 import child_process, { ChildProcessWithoutNullStreams } from "child_process";
 import fs from "fs";
 import { readdir } from "fs/promises";

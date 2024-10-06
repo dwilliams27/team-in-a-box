@@ -9,6 +9,14 @@
     "test": "echo 'Add test script here'",
     "lint": "echo 'Add lint script here'"
   },
+  "madge": {
+    "tsConfig": "./tsconfig.json",
+    "fileExtensions": ["ts"],
+    "baseDir": "./src",
+    "alias": {
+      "@brain/*": ["src/*"]
+    }
+  },
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/mongodb": "^4.0.7",

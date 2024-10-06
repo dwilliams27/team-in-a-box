@@ -1,5 +1,4 @@
-import { LocatableService } from "@brain/services/locatableService";
-import { ServiceLocator } from "@brain/services/serviceLocator";
+import { ServiceLocator, LocatableService } from "@brain/services/serviceLocator";
 import { BOX_DB_OUTBOUND_EVENT_STREAM_COLLECTION, EventStreamStatus, OUTBOUND_EVENT_STREAM_ID_PREFIX, OutboundEvent, OutboundEventNames, OutboundEventStreamDB, SlackEvent } from "@box/types";
 import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/mongoService";
 import { nanoid } from "nanoid";

@@ -1,10 +1,12 @@
 import { BoxPrompt } from "@brain/prompts/prompt";
-import { BoxAgent, POST_SLACK_TOOL_NAME, PostToSlackTool, ServiceLocator } from "@brain/services";
 import { GPT_SERVICE_NAME, GPTService } from "@brain/services/gptService";
 import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/mongoService";
 import { SharedContext, StateMachine, StateMachineNode, StateTransitionResult } from "@brain/services/agents/stateMachine";
 import { TOOL_SERVICE_NAME, ToolCallResult, ToolService } from "@brain/services/tools/toolService";
 import chalk from "chalk";
+import { ServiceLocator } from "@brain/services/serviceLocator";
+import { BoxAgent } from "@brain/services/agents/agentService";
+import { POST_SLACK_TOOL_NAME, PostToSlackTool } from "@brain/services/tools/slackTools";
 
 export enum SlackSystemContextKeys {
   Persona = 'Persona'
@@ -25,13 +27,13 @@ class PostToSlackNode extends StateMachineNode<SlackStateMachineNodes> {
       serviceLocator,
       possibleTransitions: [],
       nodeName: SlackStateMachineNodes.postToSlack,
-      userPrompt: BoxPrompt.fromTemplate(`
+      systemPrompt: BoxPrompt.fromTemplate(`
         You are a slack agent.
         You will be asked to reason about how to respond to messages, what messages to send, and whether you need additional context to properly respond.
         You are part of a team of agents trying to emulate a software engineer.
         {{${SlackSystemContextKeys.Persona}}}
       `),
-      systemPrompt: BoxPrompt.fromTemplate(`
+      userPrompt: BoxPrompt.fromTemplate(`
         Here are some relavent past slack messages (list may be empty):
         {{${SlackUserContextKeys.RelaventSlackMessages}}}
         By posting this message, you are trying to:
@@ -42,6 +44,7 @@ class PostToSlackNode extends StateMachineNode<SlackStateMachineNodes> {
   }
 
   async decide(sharedContext: SharedContext, nodeMap: Record<SlackStateMachineNodes, StateMachineNode<SlackStateMachineNodes>>) {
+    this.log(`${chalk.yellow('trying to accomplish goal')} ${chalk.blueBright(sharedContext.goalInformation)}`, [sharedContext.personaInformation?.name || 'unknown_persona']);
     const gptService = this.serviceLocator.getService<GPTService>(GPT_SERVICE_NAME);
     const mongoService = this.serviceLocator.getService<MongoService>(MONGO_SERVICE_NAME);
     const toolService = this.serviceLocator.getService<ToolService>(TOOL_SERVICE_NAME);

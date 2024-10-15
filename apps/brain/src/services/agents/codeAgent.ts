@@ -6,11 +6,11 @@ import { TOOL_SERVICE_NAME, ToolCallResult, ToolService } from "@brain/services/
 import chalk from "chalk";
 import { ServiceLocator } from "@brain/services/serviceLocator";
 
-export enum CodeSystemContextKeys {}
-
-export enum CodeUserContextKeys {
+export enum CodeSystemDecisionContextKeys {
   Goal = 'Goal'
 }
+
+export enum CodeUserDecisionContextKeys {}
 
 export enum CodeStateMachineNodes {
   reflect = 'reflect',
@@ -25,15 +25,17 @@ class ModifyProjectNode extends StateMachineNode<CodeStateMachineNodes> {
       serviceLocator,
       possibleTransitions: [],
       nodeName: CodeStateMachineNodes.modifyProject,
-      userPrompt: BoxPrompt.fromTemplate(`
-        You are a code agent.
+      systemDecisionPrompt: BoxPrompt.fromTemplate(`
+        You are an agent that is used for writing and modifying computer code.
         You will be asked to reason about how to modify a project, what changes to make, and whether you need additional context to properly modify the project.
         Your project is written entirely in javascript. It will all be in one file.
         You are part of a team of agents trying to emulate a software engineer.
-      `),
-      systemPrompt: BoxPrompt.fromTemplate(`
+
         By modifying this project, you are trying to:
         {{${CodeUserContextKeys.Goal}}}
+      `),
+      userDecisionPrompt: BoxPrompt.fromTemplate(`
+        
       `),
       context: {},
     });
@@ -42,9 +44,9 @@ class ModifyProjectNode extends StateMachineNode<CodeStateMachineNodes> {
   async decide(sharedContext: SharedContext, nodeMap: Record<CodeStateMachineNodes, StateMachineNode<CodeStateMachineNodes>>) {
     const gptService = this.serviceLocator.getService<GPTService>(GPT_SERVICE_NAME);
     const toolService = this.serviceLocator.getService<ToolService>(TOOL_SERVICE_NAME);
+
     // Static tools
     const writeFileTool = toolService.getTool<WriteFileTool>(WRITE_FILE_TOOL_NAME);
-
     // Dynamic tools
     const readFileTool = toolService.getTool<ReadFileTool>(READ_FILE_TOOL_NAME, sharedContext);
     const runProjectScriptTool = toolService.getTool<RunProjectScriptTool>(RUN_PROJECT_SCRIPT_TOOL_NAME, sharedContext);

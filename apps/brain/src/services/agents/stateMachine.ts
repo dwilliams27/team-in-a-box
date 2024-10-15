@@ -3,14 +3,9 @@ import { BoxPrompt } from "@brain/prompts/prompt";
 import { BoxAgent } from "@brain/services/agents/agentService";
 import { CompletionResult } from "@brain/services/gptService";
 import { ServiceLocator } from "@brain/services/serviceLocator";
-import { ToolCallResult } from "@brain/services/tools/toolService";
+import { BoxTool, ToolCallResult, TransitionTool } from "@brain/services/tools/toolService";
 import chalk from "chalk";
 
-/* State Machine
-- State: context
-- Possible Transitions: List of transitions, each requiring some context to be active
-- Run: Think then select a transition
-*/
 export const enum StateTransitionResult {
   STOP = 'STOP', // Goal accomplished
   CONTINUE = 'CONTINUE', // Continue in normal flow
@@ -40,35 +35,46 @@ export abstract class StateMachineNode<T extends string> {
   serviceLocator: ServiceLocator;
   possibleTransitions: StateMachineNode<T>[];
   context: Record<string, any>;
-  systemPrompt: BoxPrompt;
-  userPrompt: BoxPrompt;
+  systemDecisionPrompt: BoxPrompt;
+  userDecisionPrompt: BoxPrompt;
+  systemReflectionPrompt: BoxPrompt;
+  userReflectionPrompt: BoxPrompt;
   nodeName: T;
-  transitionResult?: StateTransitionResult;
+
+  _transitionResult?: StateTransitionResult;
+  _transitionTool?: BoxTool;
   
   constructor(opts: {
     serviceLocator: ServiceLocator,
     possibleTransitions: StateMachineNode<T>[],
     context: Record<string, any>,
     nodeName: T,
-    systemPrompt: BoxPrompt,
-    userPrompt: BoxPrompt,
+    systemDecisionPrompt: BoxPrompt,
+    userDecisionPrompt: BoxPrompt,
+    systemReflectionPrompt: BoxPrompt,
+    userReflectionPrompt: BoxPrompt,
   }) {
     this.serviceLocator = opts.serviceLocator;
     this.possibleTransitions = opts.possibleTransitions;
     this.context = opts.context;
     this.nodeName = opts.nodeName;
-    this.systemPrompt = opts.systemPrompt;
-    this.userPrompt = opts.userPrompt;
+    this.systemDecisionPrompt = opts.systemDecisionPrompt;
+    this.userDecisionPrompt = opts.userDecisionPrompt;
+    this.systemReflectionPrompt = opts.systemReflectionPrompt;
+    this.userReflectionPrompt = opts.userReflectionPrompt;
   }
 
   abstract decide(sharedContext: SharedContext, nodeMap: Record<T, StateMachineNode<T>>): Promise<CompletionResult>;
-  abstract reflect(sharedContext: SharedContext, nodeMap: Record<T, StateMachineNode<T>>, toolCallResults: ToolCallResult[]): Promise<StateTransitionOutput<T>>;
+  abstract reflect(sharedContext: SharedContext, nodeMap: Record<T, StateMachineNode<T>>, toolCallResults: ToolCallResult[], transitionTool: TransitionTool): Promise<StateTransitionOutput<T>>;
   
   async transition(sharedContext: SharedContext, nodeMap: Record<T, StateMachineNode<T>>): Promise<StateTransitionOutput<T>> {
     console.log(`${chalk.yellow('Executing transition for node:')} ${chalk.blueBright(this.nodeName)} ${chalk.yellow('for persona')} ${chalk.blueBright(sharedContext.personaInformation?.name)}`);
     let toolCallResults: ToolCallResult[] = [];
 
+    // Decide
     const decision = await this.decide(sharedContext, nodeMap);
+
+    // Execute tool calls
     if (decision.toolCalls) {
       const toolPromises = decision.toolCalls.map(async (toolCall) => {
         return toolCall.tool.invoke(JSON.parse(toolCall.call.function.arguments || '{}'), sharedContext);
@@ -82,12 +88,25 @@ export abstract class StateMachineNode<T extends string> {
       });
     }
 
-    const stateTransition = await this.reflect(sharedContext, nodeMap, toolCallResults);
-    if (stateTransition.nextNode) {
-      stateTransition.nextNode.mergeContext(stateTransition.context);
+    // Construct tool with possible transition options
+    const transitionTool: TransitionTool | null = new TransitionTool(this.serviceLocator);
+    await transitionTool.populateDynamicSchema(sharedContext);
+
+    // If possible next states, reflect on where to go
+    if (transitionTool.schema) {
+      const stateTransition = await this.reflect(sharedContext, nodeMap, toolCallResults, transitionTool);
+      if (stateTransition.nextNode) {
+        stateTransition.nextNode.mergeContext(stateTransition.context);
+      }
+      return stateTransition;
     }
 
-    return stateTransition;
+    return {
+      output: {},
+      status: StateTransitionResult.STOP,
+      context: this.context,
+      nextNode: null,
+    }
   }
 
   mergeContext(context: Record<string, any>) {

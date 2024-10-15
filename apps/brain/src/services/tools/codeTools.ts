@@ -31,7 +31,11 @@ export class WriteFileTool extends BoxTool {
     const repoService = this.serviceLocator.getService<RepoService>(REPO_SERVICE_NAME);
     const myWorkspace = repoService.getWorkspaceForPersona(sharedContext.personaInformation);
     await myWorkspace.writeFile(toolArgs.fileName, toolArgs.fileContents);
-    return { success: true, result: {} };
+    return {
+      success: true,
+      result: {},
+      gptFriendlyDescription: `You just wrote to a file named ${toolArgs.fileName}. You wrote: <fileContents>${toolArgs.fileContents}</fileContents>`
+    };
   }
 }
 
@@ -49,8 +53,7 @@ export class ReadFileTool extends BoxTool {
       description: 'Read the contents of a file.',
       singleton: false,
       schema: null
-    })
-    this.serviceLocator = serviceLocator;
+    });
   }
 
   async populateDynamicSchema(sharedContext: SharedContext) {
@@ -79,7 +82,11 @@ export class ReadFileTool extends BoxTool {
     const repoService = this.serviceLocator.getService<RepoService>(REPO_SERVICE_NAME);
     const myWorkspace = repoService.getWorkspaceForPersona(sharedContext.personaInformation);
     const fileContent = await myWorkspace.readFile(toolArgs.fileName);
-    return { success: true, result: { fileContent } };
+    return {
+      success: true,
+      result: { fileContent },
+      gptFriendlyDescription: `You just read the contents of a file named ${toolArgs.fileName}. The file contents are: <fileContents>${fileContent}</fileContents>`
+    };
   }
 }
 
@@ -105,7 +112,11 @@ export class GetFileNamesTool extends BoxTool {
     const repoService = this.serviceLocator.getService<RepoService>(REPO_SERVICE_NAME);
     const myWorkspace = repoService.getWorkspaceForPersona(sharedContext.personaInformation);
     const filenames = await myWorkspace.getFilenames();
-    return { success: true, result: { filenames } };
+    return {
+      success: true,
+      result: { filenames },
+      gptFriendlyDescription: `You just requested the names of all the files in the workspace. They are: ${filenames.join(',')}`
+    };
   }
 }
 
@@ -154,6 +165,10 @@ export class RunProjectScriptTool extends BoxTool {
     const repoService = this.serviceLocator.getService<RepoService>(REPO_SERVICE_NAME);
     const myWorkspace = repoService.getWorkspaceForPersona(sharedContext.personaInformation);
     const { stdout, stderr } = await myWorkspace.runProjectScript(toolArgs.scriptName);
-    return { success: true, result: { stdout, stderr } };
+    return {
+      success: true,
+      result: { stdout, stderr },
+      gptFriendlyDescription: `You just ran the script ${toolArgs.scriptName}. The results were: <stdout>${stdout}</stdout> <stderr>${stderr}</stderr>`
+    };
   }
 }

@@ -39,6 +39,10 @@ export class PostToSlackTool extends BoxTool {
         agentId: sharedContext.personaInformation?.id || null,
       }
     });
-    return { success: true, result: {} };
+    return {
+      success: true,
+      result: {},
+      gptFriendlyDescription: `You just posted a slack message to ${toolArgs.channel} with the content: ${toolArgs.message}`
+    };
   }
 }

@@ -1,11 +1,12 @@
 import { BoxPersonaDB } from "@box/types";
 import { ServiceLocator, LocatableService } from "@brain/services/serviceLocator";
-import { SharedContext } from "@brain/services/stateMachines";
-import { ZodType } from "zod";
+import { SharedContext } from "@brain/services/agents/stateMachine";
+import { z, ZodType } from "zod";
 
 export interface ToolCallResult {
   success: boolean;
   result: Record<string, any>;
+  gptFriendlyDescription: string;
 }
 
 export abstract class BoxTool {
@@ -81,5 +82,57 @@ export class ToolService extends LocatableService {
       throw new Error('Could not find tool!');
     }
     return this.tools[toolName] as T;
+  }
+}
+
+export const TRANSITION_TOOL_NAME = 'transition';
+const TransitionToolSchema = z.object({
+  nextDecision: z.any(),
+});
+type TransitionToolArgs = z.infer<typeof TransitionToolSchema>;
+
+export class TransitionTool extends BoxTool {
+  constructor(serviceLocator: ServiceLocator) {
+    super({
+      serviceLocator,
+      name: TRANSITION_TOOL_NAME,
+      description: 'Next action to transition to. You should select NONE if you think you have accomplished your goal.',
+      singleton: false,
+      schema: null
+    });
+  }
+
+  async populateDynamicSchema(sharedContext: SharedContext) {
+    if (!sharedContext.agentInformation?.stateMachine?.currentNode?.possibleTransitions) {
+      throw new Error('Unable to generate transition options from given context');
+    }
+
+    // If no transitions, node will just skip GPT call
+    if (sharedContext.agentInformation.stateMachine.currentNode.possibleTransitions.length < 1) {
+      return;
+    }
+
+    const transitionOptions = sharedContext.agentInformation.stateMachine.currentNode.possibleTransitions.map(
+      (transitionOption) => transitionOption.nodeName) as [string, ...string[]
+    ];
+
+    this.schema = z.object({
+      fileName: z.enum([
+        'NONE',
+        ...transitionOptions,
+        ]).describe('Possible actions that can be taken next.'),
+    });
+  }
+
+  async invoke(toolArgs: TransitionToolArgs, sharedContext: SharedContext) {
+    if (!this.schema) {
+      throw new Error('Dynamic schema not populated');
+    }
+
+    return {
+      success: true,
+      result: { nextDecision: toolArgs.nextDecision },
+      gptFriendlyDescription: `You just decided to ${toolArgs.nextDecision} next.`
+    };
   }
 }

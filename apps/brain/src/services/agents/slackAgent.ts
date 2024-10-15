@@ -39,10 +39,13 @@ class PostToSlackNode extends StateMachineNode<SlackStateMachineNodes> {
         You are part of a team of agents trying to emulate a software engineer.
         {{${SlackSystemDecisionContextKeys.Persona}}}
 
-        Here are some relavent past slack messages (list may be empty):
-        {{${SlackSystemDecisionContextKeys.RelaventSlackMessages}}}
-        By posting this message, you are trying to:
+        <goal>
         {{${SlackSystemDecisionContextKeys.Goal}}}
+        </goal>
+
+        <relaventSlackMessages>
+        {{${SlackSystemDecisionContextKeys.RelaventSlackMessages}}}
+        </relaventSlackMessages>
       `),
       userDecisionPrompt: BoxPrompt.fromTemplate(``),
       systemReflectionPrompt: BoxPrompt.fromTemplate(`
@@ -50,8 +53,13 @@ class PostToSlackNode extends StateMachineNode<SlackStateMachineNodes> {
         You will reflect on an action you just took and decide what to do next.
         You are part of a team of agents trying to emulate a software engineer.
 
-        You were triyng to accomplish this goal: {{${SlackSystemReflectionContextKeys.Goal}}}
-        Here is the context about the action you just took: {{${SlackSystemReflectionContextKeys.ActionContext}}}
+        <goal>
+        {{${SlackSystemReflectionContextKeys.Goal}}}
+        </goal>
+
+        <recentActionContext>
+        {{${SlackSystemReflectionContextKeys.ActionContext}}}
+        </recentActionContext>
       `),
       userReflectionPrompt: BoxPrompt.fromTemplate(``),
       context: {},
@@ -67,11 +75,11 @@ class PostToSlackNode extends StateMachineNode<SlackStateMachineNodes> {
 
     // Get related slack messages
     const relatedMessages = await mongoService.querySlackVectorStore(BoxPrompt.fromTemplate(`
-      Current ticket: {{ticket_information}}
-      Goal: {{goal_information}}
+      <ticketInformation>{{ticket_information}}</ticketInformation>
+      <goal>{{goal_information}}</goal>
     `, {
       ticket_information: sharedContext.ticketInformation || 'No ticket.',
-      goal_information: sharedContext.goalInformation || 'No goal.'
+      goal_information: sharedContext.goalInformation || 'No goal.',
     }).getPrompt());
 
     // Populate prompts
@@ -129,9 +137,12 @@ export const SLACK_AGENT_NAME = 'SLACK_AGENT';
 export class SlackAgent extends BoxAgent {
   constructor(serviceLocator: ServiceLocator) {
     super(serviceLocator, generateSlackStateMachine(serviceLocator), SLACK_AGENT_NAME);
-    const toolService = serviceLocator.getService<ToolService>(TOOL_SERVICE_NAME);
-    toolService.registerTool(new PostToSlackTool(serviceLocator));
 
     this.sharedContext.goalInformation = 'Give an introduction to the team.';
+  }
+
+  registerTools(): void {
+    const toolService = this.serviceLocator.getService<ToolService>(TOOL_SERVICE_NAME);
+    toolService.registerTool(new PostToSlackTool(this.serviceLocator));
   }
 }

@@ -19,7 +19,7 @@ export class WriteFileTool extends BoxTool {
       serviceLocator,
       name: WRITE_FILE_TOOL_NAME,
       description: 'Write to a file in your local workspace.',
-      singleton: true,
+      singleton: false,
       schema: WriteFileToolSchema
     });
   }
@@ -100,7 +100,7 @@ export class GetFileNamesTool extends BoxTool {
       serviceLocator,
       name: GET_FILE_NAMES_TOOL_NAME,
       description: 'Get a list of all files in the current workspace.',
-      singleton: true,
+      singleton: false,
       schema: GetFileNamesToolSchema
     });
   }

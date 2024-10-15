@@ -86,10 +86,10 @@ export class ToolService extends LocatableService {
 }
 
 export const TRANSITION_TOOL_NAME = 'transition';
-const TransitionToolSchema = z.object({
+export const TransitionToolSchema = z.object({
   nextDecision: z.any(),
 });
-type TransitionToolArgs = z.infer<typeof TransitionToolSchema>;
+export type TransitionToolArgs = z.infer<typeof TransitionToolSchema>;
 
 export class TransitionTool extends BoxTool {
   constructor(serviceLocator: ServiceLocator) {

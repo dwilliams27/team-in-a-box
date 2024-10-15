@@ -2,7 +2,7 @@ import { BoxPersonaDB } from "@box/types";
 import { ServiceLocator, LocatableService } from "@brain/services/serviceLocator";
 import { SharedContext, StateMachine } from "@brain/services/agents/stateMachine";
 
-export class BoxAgent {
+export abstract class BoxAgent {
   name: string;
   serviceLocator: ServiceLocator;
   stateMachine: StateMachine<string>;
@@ -22,8 +22,12 @@ export class BoxAgent {
       personaInformation: opts.persona,
     };
 
+    this.registerTools();
+
     return this.stateMachine.execute(this.sharedContext);
   }
+
+  abstract registerTools(): void;
 }
 
 export const AGENT_SERVICE_NAME = 'AGENT_SERVICE';

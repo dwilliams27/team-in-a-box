@@ -13,15 +13,15 @@
   },
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.4.5",
-    "@cloudflare/workers-types": "^4.20240821.1",
+    "@cloudflare/workers-types": "^4.20241022.0",
     "typescript": "^5.5.2",
     "vitest": "1.5.0",
-    "wrangler": "^3.60.3"
+    "wrangler": "^3.84.0"
   },
   "dependencies": {
+    "@box/db-edge": "*",
     "@box/types": "*",
     "axios": "^1.7.5",
-    "nanoid": "^5.0.7",
-    "realm-web": "^2.0.1"
+    "nanoid": "^5.0.7"
   }
 }

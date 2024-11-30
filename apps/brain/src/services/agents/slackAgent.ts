@@ -1,6 +1,6 @@
 import { BoxPrompt } from "@brain/prompts/prompt";
-import { GPT_SERVICE_NAME, GPTService } from "@brain/services/gptService";
-import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/mongoService";
+import { LLM_SERVICE_NAME, LLMService } from "@brain/services/llmService";
+import { MONGO_SERVICE_NAME, MongoService } from "@brain/services/dbService";
 import { SharedContext, StateMachine, StateMachineNode, StateTransitionResult } from "@brain/services/agents/stateMachine";
 import { TOOL_SERVICE_NAME, ToolCallResult, ToolService } from "@brain/services/tools/toolService";
 import chalk from "chalk";
@@ -68,7 +68,7 @@ class PostToSlackNode extends StateMachineNode<SlackStateMachineNodes> {
 
   async decide(sharedContext: SharedContext, nodeMap: Record<SlackStateMachineNodes, StateMachineNode<SlackStateMachineNodes>>) {
     this.log(`${chalk.yellow('Trying to accomplish goal')} ${chalk.blueBright(sharedContext.goalInformation)}`, [sharedContext.personaInformation?.name || 'unknown_persona']);
-    const gptService = this.serviceLocator.getService<GPTService>(GPT_SERVICE_NAME);
+    const gptService = this.serviceLocator.getService<LLMService>(LLM_SERVICE_NAME);
     const mongoService = this.serviceLocator.getService<MongoService>(MONGO_SERVICE_NAME);
     const toolService = this.serviceLocator.getService<ToolService>(TOOL_SERVICE_NAME);
     const slackTool = toolService.getTool<PostToSlackTool>(POST_SLACK_TOOL_NAME);

@@ -1,0 +1,51 @@
+/// @@SQL CREATE EXTENSION IF NOT EXISTS vector;
+
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+model Persona {
+  id                 Int      @id @default(autoincrement())
+  reference          String   @unique
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  name               String
+  system_prompt      String
+  github_app_id      String
+  github_client_id   String
+  github_private_key String
+  slack_user_id      String
+  filter             Json?
+}
+
+model InboundEvent {
+  id                 Int      @id @default(autoincrement())
+  reference          String   @unique
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  /// @type {{ status: string; started_at: Date | null; error: string | null }}
+  processing         Json
+  /// @type {{ status: string; started_at: Date | null; error: string | null }}
+  pre_processing     Json
+  slack              Json
+  type               String
+  for_personas       String[]
+}
+
+model SlackData {
+  id                   Int      @id @default(autoincrement())
+  reference            String   @unique
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  event                Json
+  sourceEventReference String
+
+  embedding          Unsupported("vector(1536)")?
+}

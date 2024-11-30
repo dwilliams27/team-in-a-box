@@ -107,7 +107,7 @@ export class TransitionTool extends BoxTool {
       throw new Error('Unable to generate transition options from given context');
     }
 
-    // If no transitions, node will just skip GPT call
+    // If no transitions, node will just skip LLM call
     if (sharedContext.agentInformation.stateMachine.currentNode.possibleTransitions.length < 1) {
       return;
     }

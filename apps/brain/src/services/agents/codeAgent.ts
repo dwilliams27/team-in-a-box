@@ -1,5 +1,5 @@
 import { BoxPrompt } from "@brain/prompts/prompt";
-import { GPT_SERVICE_NAME, GPTService } from "@brain/services/gptService";
+import { LLM_SERVICE_NAME, LLMService } from "@brain/services/llmService";
 import { SharedContext, StateMachine, StateMachineNode, StateTransitionResult } from "@brain/services/agents/stateMachine";
 import { GetFileNamesTool, READ_FILE_TOOL_NAME, ReadFileTool, RUN_PROJECT_SCRIPT_TOOL_NAME, RunProjectScriptTool, WRITE_FILE_TOOL_NAME, WriteFileTool } from "@brain/services/tools/codeTools";
 import { TOOL_SERVICE_NAME, ToolCallResult, ToolService, TransitionTool, TransitionToolArgs } from "@brain/services/tools/toolService";
@@ -66,7 +66,7 @@ class TestProjectNode extends StateMachineNode<CodeStateMachineNodes> {
     sharedContext: SharedContext,
     nodeMap: Record<CodeStateMachineNodes, StateMachineNode<CodeStateMachineNodes>>
   ) {
-    const gptService = this.serviceLocator.getService<GPTService>(GPT_SERVICE_NAME);
+    const gptService = this.serviceLocator.getService<LLMService>(LLM_SERVICE_NAME);
     const toolService = this.serviceLocator.getService<ToolService>(TOOL_SERVICE_NAME);
 
     // Dynamic tools
@@ -99,7 +99,7 @@ class TestProjectNode extends StateMachineNode<CodeStateMachineNodes> {
     toolCallResults: ToolCallResult[],
     transitionTool: TransitionTool
   ) {
-    const gptService = this.serviceLocator.getService<GPTService>(GPT_SERVICE_NAME);
+    const gptService = this.serviceLocator.getService<LLMService>(LLM_SERVICE_NAME);
     
     // Populate prompts
     this.systemReflectionPrompt.setParam(
@@ -184,7 +184,7 @@ class ModifyProjectNode extends StateMachineNode<CodeStateMachineNodes> {
     sharedContext: SharedContext,
     nodeMap: Record<CodeStateMachineNodes, StateMachineNode<CodeStateMachineNodes>>
   ) {
-    const gptService = this.serviceLocator.getService<GPTService>(GPT_SERVICE_NAME);
+    const gptService = this.serviceLocator.getService<LLMService>(LLM_SERVICE_NAME);
     const toolService = this.serviceLocator.getService<ToolService>(TOOL_SERVICE_NAME);
 
     // Static tools
@@ -219,7 +219,7 @@ class ModifyProjectNode extends StateMachineNode<CodeStateMachineNodes> {
     toolCallResults: ToolCallResult[],
     transitionTool: TransitionTool
   ) {
-    const gptService = this.serviceLocator.getService<GPTService>(GPT_SERVICE_NAME);
+    const gptService = this.serviceLocator.getService<LLMService>(LLM_SERVICE_NAME);
     
     // Populate prompts
     this.systemReflectionPrompt.setParam(
@@ -228,7 +228,7 @@ class ModifyProjectNode extends StateMachineNode<CodeStateMachineNodes> {
     );
     this.systemReflectionPrompt.setParam(
       CodeSystemReflectionContextKeys.ActionContext,
-      sharedContext.goalInformation || 'No recent action.'
+      toolCallResults.map((res) => `<toolCallResult>${res.gptFriendlyDescription}</toolCallResult>`).join('') || 'No recent action.'
     );
 
     const { result, toolCalls } = await gptService.query(
@@ -281,7 +281,7 @@ export class CodeAgent extends BoxAgent {
 
   registerTools(): void {
     const toolService = this.serviceLocator.getService<ToolService>(TOOL_SERVICE_NAME);
-    // wrtiefile, readfile, getfilenames, runScript, 
+    // writefile, readfile, getfilenames, runScript, 
     toolService.registerTool(new WriteFileTool(this.serviceLocator), this.sharedContext.personaInformation);
     toolService.registerTool(new ReadFileTool(this.serviceLocator), this.sharedContext.personaInformation);
     toolService.registerTool(new GetFileNamesTool(this.serviceLocator), this.sharedContext.personaInformation);

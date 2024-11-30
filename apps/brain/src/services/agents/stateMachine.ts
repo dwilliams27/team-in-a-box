@@ -1,7 +1,7 @@
 import { BoxPersonaDB } from "@box/types";
 import { BoxPrompt } from "@brain/prompts/prompt";
 import { BoxAgent } from "@brain/services/agents/agentService";
-import { CompletionResult } from "@brain/services/gptService";
+import { CompletionResult } from "@brain/services/llmService";
 import { ServiceLocator } from "@brain/services/serviceLocator";
 import { BoxTool, ToolCallResult, TransitionTool } from "@brain/services/tools/toolService";
 import chalk from "chalk";

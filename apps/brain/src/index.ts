@@ -1,13 +1,15 @@
 import { AGENT_SERVICE_NAME, AgentService } from '@brain/services/agents/agentService';
+import { CodeAgent } from '@brain/services/agents/codeAgent';
 import { SlackAgent } from '@brain/services/agents/slackAgent';
-import { GPTService } from '@brain/services/gptService';
-import { MongoService } from '@brain/services/mongoService';
+import { LLMService } from '@brain/services/llmService';
+import { MongoService } from '@brain/services/dbService';
 import { POLL_SERVICE_NAME, PollService } from '@brain/services/pollService';
 import { ServiceLocator } from '@brain/services/serviceLocator';
 import { ToolService } from '@brain/services/tools/toolService';
 import chalk from 'chalk';
 import dotenv from 'dotenv';
 import process from "node:process";
+import "reflect-metadata";
 
 dotenv.config();
 
@@ -52,9 +54,9 @@ class App {
     new AgentService(this.rootServiceLocator);
     new PollService(this.rootServiceLocator);
     if (process.env.OPENAI_API_KEY) {
-      new GPTService(this.rootServiceLocator, process.env.OPENAI_API_KEY);
+      new LLMService(this.rootServiceLocator);
     } else {
-      console.error('Unable to create GPT service, missing OPENAI_API_KEY');
+      console.error(chalk.red('Unable to find OPENAI_API_KEY'));
       process.exit(1);
     }
 
@@ -64,6 +66,7 @@ class App {
   registerRootAgents() {
     const agentService = this.rootServiceLocator.getService<AgentService>(AGENT_SERVICE_NAME);
     agentService.registerNewAgent(new SlackAgent(this.rootServiceLocator));
+    agentService.registerNewAgent(new CodeAgent(this.rootServiceLocator));
   }
 
   async mainInit() {

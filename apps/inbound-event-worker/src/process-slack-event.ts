@@ -1,20 +1,43 @@
-import { BOX_DB_INBOUND_EVENT_STREAM_COLLECTION, BOX_DB_NAME, SlackEvent, INBOUND_EVENT_STREAM_ID_PREFIX, EventStreamStatus, EventType, InboundEventStreamDB } from "@box/types";
-import { nanoid } from "nanoid";
+import { SlackEvent, INBOUND_EVENT_STREAM_ID_PREFIX, EventType, ID_ALPHABET, ID_LENGTH, InboundEventDB, EventStatus } from "@box/types";
+import { customAlphabet } from "nanoid";
+import { PrismaClient, Prisma } from '@repo/db';
 
-export async function processSlackEvent(event: SlackEvent, dbClient: any) {
+export async function processSlackEvent(event: SlackEvent, dbClient: PrismaClient) {
   if (event.subtype) {
     console.log('Ignoring message, subtype not supported');
     return;
   }
-  const eventStreamCollection = dbClient.db(BOX_DB_NAME).collection(BOX_DB_INBOUND_EVENT_STREAM_COLLECTION);
+  // For now, everyone hears everything
+  const for_personas = ['*'];
+  const usersTagged = Array.from(event.text.matchAll(/<@([A-Z0-9]+)>/g)).map(match => match[0]);
+  if (usersTagged) {
+    for_personas.push(...usersTagged);
+  }
+  
+  // Replace user ids with Persona names
+  // Maybe move to some "translateToLLMFriendlyText" function or smth
+  const personas = await dbClient.persona.findMany({ where: { slack_user_id: { in: usersTagged } } });
+  personas.forEach((persona) => {
+    event.text = event.text.replaceAll(`<@${persona.slack_user_id}>`, persona.name);
+  });
 
-  const item: InboundEventStreamDB = {
-    id: `${INBOUND_EVENT_STREAM_ID_PREFIX}_${nanoid()}`,
-    status: EventStreamStatus.PENDING,
+  const item: InboundEventDB = {
+    reference: `${INBOUND_EVENT_STREAM_ID_PREFIX}_${customAlphabet(ID_ALPHABET, ID_LENGTH)()}`,
+    processing: {
+      status: EventStatus.PENDING,
+      started_at: null,
+      error: null,
+    },
+    pre_processing: {
+      status: EventStatus.PENDING,
+      started_at: null,
+      error: null,
+    },
     type: EventType.SLACK,
     slack: event,
-    processing_error: null
+    for_personas,
   }
 
-  await eventStreamCollection.insertOne(item);
+  // @ts-expect-error
+  await dbClient.inboundEvent.create({ data: item });
 }

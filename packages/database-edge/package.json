@@ -1,0 +1,20 @@
+{
+  "name": "@box/db-edge",
+  "version": "0.0.0",
+  "scripts": {
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push --skip-generate"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4",
+    "@prisma/adapter-neon": "^6.0.0",
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.5.13",
+    "prisma": "^5.22.0"
+  }
+}

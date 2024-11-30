@@ -1,5 +1,6 @@
 import { BoxPersonaDB, GitContext } from "@box/types";
 import { ServiceLocator, LocatableService } from "@brain/services/serviceLocator";
+import { ShellSession } from "@brain/utils/shellSession";
 import child_process, { ChildProcessWithoutNullStreams } from "child_process";
 import fs from "fs";
 import { readdir } from "fs/promises";
@@ -14,54 +15,34 @@ const spawn = util.promisify(child_process.spawn);
 - package-lock.json
 */
 
-export interface CommandHistoryItem {
-  command: string;
-  result: string;
-  error: string;
-}
-
 export class Workspace {
   rootPath: string;
   name: string;
   gitContext: GitContext;
   persona: BoxPersonaDB;
-  shellSession: ChildProcessWithoutNullStreams | null;
-  commandHistory: CommandHistoryItem[] = [];
+  shellSession: ShellSession;
 
   constructor(opts: { rootPath: string, persona: BoxPersonaDB, gitContext: GitContext }) {
     this.rootPath = opts.rootPath;
     this.name = opts.persona.id;
     this.persona = opts.persona;
     this.gitContext = opts.gitContext;
-    this.shellSession = null;
-
-    this.initializeWorkspace();
-  }
-
-  async initializeWorkspace() {
-    this.shellSession = await spawn('bash', [], {
-      cwd: this.rootPath,
-      stdio: ['pipe', 'pipe', 'pipe']
-    }) as ChildProcessWithoutNullStreams;
-
-    await this.cloneIntoRepo();
-  }
-
-  async cloneIntoRepo() {
-    await this.runCommand(`git clone ${this.gitContext.remoteUrl}`);
-    await this.runCommand(`cd ${this.gitContext.projectName}`);
+    this.shellSession = new ShellSession(
+      opts.rootPath,
+      [`git clone ${this.gitContext.remoteUrl}`, `cd ${this.gitContext.projectName}`]
+    );
   }
 
   async changeBranch(branchName: string) {
-    await this.runCommand(`git checkout ${branchName}`);
+    await this.shellSession.runCommand(`git checkout ${branchName}`);
   }
 
   async installPackage(packageName: string) {
-    await this.runCommand(`npm install ${packageName}`);
+    await this.shellSession.runCommand(`npm install ${packageName}`);
   }
 
   async runProjectScript(command: string) {
-    const { stdout, stderr } = await this.runCommand(`npm run ${command}`);
+    const { stdout, stderr } = await this.shellSession.runCommand(`npm run ${command}`);
     return { stdout, stderr };
   }
 
@@ -94,30 +75,6 @@ export class Workspace {
     }
 
     return false;
-  }
-
-  async runCommand(command: string): Promise<{ stdout: string, stderr: string }> {
-    if (!this.shellSession) {
-      throw new Error('Shell session not initialized');
-    }
-
-    return new Promise((resolve, reject) => {
-      this.shellSession?.stdin.write(command + '\n');
-      let output = {
-        stdout: '',
-        stderr: '',
-      };
-      this.shellSession?.stdout.on('data', (data) => {
-        output.stdout = data.toString();
-      });
-      this.shellSession?.stderr.on('data', (data) => {
-        output.stderr = data.toString();
-      });
-      this.shellSession?.stdout.on('end', () => {
-        this.commandHistory.push({ command, result: output.stdout, error: output.stderr });
-        resolve(output);
-      });
-    });
   }
 }
 

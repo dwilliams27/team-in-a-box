@@ -1,3 +1,4 @@
+import { EventDB } from "./events";
 import { SlackEvent } from "./slack";
 
 export interface Context {
@@ -14,7 +15,7 @@ export interface Thought {
   slackContext: SlackContext;
 }
 
-export interface BrainEvent {
+export interface BrainEventDB extends EventDB {
   prompt: string;
   forPersona?: { name?: string, id?: string };
 }

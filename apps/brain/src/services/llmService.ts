@@ -5,6 +5,7 @@ import OpenAI from "openai";
 // Yikes?
 import { ChatCompletionMessageToolCall } from "openai/resources/index.mjs";
 import { BoxTool } from "@brain/services/tools/toolService";
+import { ShellSession } from "@brain/utils/shellSession";
 
 export interface BoxToolCall {
   tool: BoxTool;
@@ -16,26 +17,27 @@ export interface CompletionResult {
   toolCalls: BoxToolCall[] | null;
 }
 
-export const GPT_SERVICE_NAME = 'GPT_SERVICE';
+export const LLM_SERVICE_NAME = 'LLM_SERVICE';
 
-export class GPTService extends LocatableService {
+export class LLMService extends LocatableService {
+  shellSession: ShellSession | null = null;
   totalTokens = 0;
 
-  constructor(serviceLocator: ServiceLocator, apiKey: string) {
-    super(serviceLocator, GPT_SERVICE_NAME);
+  constructor(serviceLocator: ServiceLocator) {
+    super(serviceLocator, LLM_SERVICE_NAME);
   }
 
   async generateEmbedding(text: string): Promise<number[]> {
     const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
   
     const embedding = await openai.embeddings.create({
-      model: "text-embedding-3-small",
+      model: 'text-embedding-3-small',
       input: text,
-      encoding_format: "float",
+      encoding_format: 'float',
     });
   
     if (!embedding.data[0]?.embedding) {
-      throw new Error("Problem generating embedding");
+      throw new Error('Problem generating embedding');
     }
   
     return embedding.data[0].embedding;
@@ -85,7 +87,7 @@ export class GPTService extends LocatableService {
     this.totalTokens += result.usage?.total_tokens || 0;
     this.log(
       [
-        'GPT query result',
+        'LLM query result',
         'Tool calls',
         'Tokens used'
       ],

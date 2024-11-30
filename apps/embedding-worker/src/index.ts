@@ -1,18 +1,14 @@
-import { BOX_DB_INBOUND_EVENT_STREAM_COLLECTION, BOX_DB_NAME, EventStreamStatus, EventType, InboundEventStreamDB } from '@box/types';
-import * as Realm from 'realm-web';
+import { EventStatus, EventType } from '@box/types';
 import { handleSlackEmbedding } from './slack-embedding';
+import { Pool, PrismaClient, PrismaNeon } from '@box/db-edge';
 
 export interface EmbeddingWorkerEnv {
-	ATLAS_APP_ID: string;
-	ATLAS_CF_USERNAME: string;
-	ATLAS_CF_PASSWORD: string;
+	DATABASE_URL: string;
 
 	OPENAI_API_KEY: string;
 }
 
 const PROCESSING_TIMEOUT = 5 * 60 * 1000; // 5 minutes
-
-let App: Realm.App;
 
 export default {
 	async scheduled(
@@ -21,49 +17,71 @@ export default {
     ctx: ExecutionContext,
   ) {
 		console.log("Embedding worker running...");
-		App = App || new Realm.App(env.ATLAS_APP_ID);
 
 		try {
-			const credentials = Realm.Credentials.emailPassword(env.ATLAS_CF_USERNAME, env.ATLAS_CF_PASSWORD);
-			const user = await App.logIn(credentials);
-			const client = user.mongoClient('mongodb-atlas');
+			const pool = new Pool({ connectionString: env.DATABASE_URL });
+			const adapter = new PrismaNeon(pool);
+			const client = new PrismaClient({ adapter });
 
 			const now = new Date();
 			const timeoutThreshold = new Date(now.getTime() - PROCESSING_TIMEOUT);
-			const boxDb = client.db(BOX_DB_NAME);
 
-			const result: InboundEventStreamDB = await boxDb.collection(BOX_DB_INBOUND_EVENT_STREAM_COLLECTION).findOneAndUpdate(
-				{
-					$or: [
-						{ status: EventStreamStatus.PENDING },
-						{ status: EventStreamStatus.PROCESSING, processing_started_at: { $lt: timeoutThreshold } }
+			const result = await client.inboundEvent.findFirst({
+				where: {
+					OR: [
+						{
+							pre_processing: {
+								path: ['status'],
+								equals: EventStatus.PENDING
+							}
+						},
+						{
+							AND: [
+								{
+									pre_processing: {
+										path: ['status'],
+										equals: EventStatus.PROCESSING
+									}
+								},
+								{
+									pre_processing: {
+										path: ['started_at'],
+										lt: timeoutThreshold
+									}
+								}
+							]
+						}
 					]
 				},
-				{
-					$set: {
-						status: EventStreamStatus.PROCESSING,
-						processing_started_at: now
-					}
-				},
-				{ sort: { _id: 1 }, returnNewDocument: true }
-			);
+				orderBy: {
+					id: 'asc'
+				}
+			});
 
 			console.log('Record from DB', result);
 
 			if (result) {
-				console.log(`Processing event ${result.id}...`);
+				console.log(`Processing event ${result.reference}...`);
 				try {
 					switch (result.type) {
 						case EventType.SLACK: {
-							await handleSlackEmbedding(result, boxDb, env);
+							// @ts-expect-error
+							await handleSlackEmbedding(result, client, env);
 						}
 					}
 				} catch (error) {
 					console.log('Error when trying to generate embedding', error);
-					await boxDb.collection(BOX_DB_INBOUND_EVENT_STREAM_COLLECTION).updateOne(
-						{ id: result.id },
-						{ $set: { status: EventStreamStatus.FAILED, processing_error: error } }
-					);
+					const updatedDoc = await client.inboundEvent.update({
+						where: {
+							id: result.id
+						},
+						data: {
+							pre_processing: {
+								status: EventStatus.FAILED,
+								processing_error: error as string
+							}
+						}
+					});
 				}
 			}
 		} catch (error: any) {

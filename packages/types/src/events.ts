@@ -1,4 +1,3 @@
-import { BrainEvent } from "./brain";
 import { SlackEvent } from "./slack";
 
 export const InboundEventNames = {
@@ -30,7 +29,6 @@ export enum EventType {
   GITHUB = 'GITHUB',
   SLACK = 'SLACK',
   TICKET = 'TICKET',
-  BRAIN = 'BRAIN',
 }
 export type TEventType = keyof typeof EventType;
 
@@ -45,48 +43,35 @@ export interface OutboundEvent {
   payload: any;
 }
 
-export interface SlackMessagePayload {
-  user: string;
-  text: string;
-  client_msg_id: string;
-  channel: string;
-  event_ts: string;
-  event_context: string;
-}
+export const INBOUND_EVENT_STREAM_ID_PREFIX = 'ievent';
+export const OUTBOUND_EVENT_STREAM_ID_PREFIX = 'oevent';
 
-export class InboundSlackMessagePostedEvent implements InboundEvent {
-  name = InboundEventNames.SLACK_MESSAGE_POSTED;
-  agentFriendlyDescription = 'test';
-  payload: SlackMessagePayload;
-
-  constructor(payload: SlackMessagePayload) {
-    this.payload = payload;
-  }
-}
-
-export const INBOUND_EVENT_STREAM_ID_PREFIX = 'inbound_event';
-export const OUTBOUND_EVENT_STREAM_ID_PREFIX = 'outbound_event';
-
-export enum EventStreamStatus {
+export enum EventStatus {
   PENDING = "PENDING",
   PROCESSING = "PROCESSING",
   PROCESSED = "PROCESSED",
   FAILED = "FAILED"
 }
 
-export interface InboundEventStreamDB {
-  id: string;
-  status: EventStreamStatus;
-  processing_started_at?: Date;
-  processing_error: string | null;
-  type: EventType;
-  slack?: SlackEvent;
-  brain?: BrainEvent;
+export interface EventProcessingMetadata {
+  status: EventStatus;
+  started_at: Date | null;
+  error: string | null;
 }
 
-export interface OutboundEventStreamDB {
-  id: string;
-  status: EventStreamStatus;
+export interface EventDB {
+  reference: string;
+  processing: EventProcessingMetadata;
+  pre_processing: EventProcessingMetadata;
+}
+
+export interface InboundEventDB extends EventDB {
+  type: EventType;
+  for_personas: string[];
+  slack?: SlackEvent;
+}
+
+export interface OutboundEventDB extends EventDB  {
   slack?: SlackEvent;
 }
 

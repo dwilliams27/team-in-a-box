@@ -1,13 +1,10 @@
-import * as Realm from 'realm-web';
+import { PrismaClient } from '@box/db';
 import { processSlackEvent } from './process-slack-event';
+import { Pool, PrismaNeon } from '@box/db-edge';
 
 export interface InboundEventWorkerEnv {
-	ATLAS_APP_ID: string;
-	ATLAS_CF_USERNAME: string;
-	ATLAS_CF_PASSWORD: string;
+	DATABASE_URL: string;
 }
-
-let App: Realm.App;
 
 export default {
 	async fetch(request: Request, env: InboundEventWorkerEnv, ctx: ExecutionContext): Promise<Response> {
@@ -20,22 +17,23 @@ export default {
 				headers: { 'Content-Type': 'application/json' }
 			});
 		}
-		App = App || new Realm.App(env.ATLAS_APP_ID);
+
+		const pool = new Pool({ connectionString: env.DATABASE_URL });
+		const adapter = new PrismaNeon(pool);
+		const client = new PrismaClient({ adapter });
 
 		try {
-			const credentials = Realm.Credentials.emailPassword(env.ATLAS_CF_USERNAME, env.ATLAS_CF_PASSWORD);
-			const user = await App.logIn(credentials);
-			const client = user.mongoClient('mongodb-atlas');
-
 			// Slack message event
 			if (body.type === 'event_callback' && body.event.type === 'message') {
 				await processSlackEvent(body.event, client);
 			}
 		} catch (error: any) {
 			console.error(error);
+			await client.$disconnect();
 			return new Response(error.message, { status: 500 });
 		}
 
+		await client.$disconnect();
 		return new Response('OK', { status: 200 });
 	},
 } satisfies ExportedHandler<InboundEventWorkerEnv>;
